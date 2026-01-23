@@ -1,0 +1,23 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace DigitalLibrary.Models;
+
+public partial class Author
+{
+    public string ID { get; set; } = null!;
+
+    public string Name { get; set; } = null!;
+
+    public string? Email { get; set; }
+
+    public string? Description { get; set; }
+
+    public string? Image { get; set; }
+
+    public string? Expertise { get; set; }
+
+    public virtual User_Author? User_Author { get; set; }
+
+    public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
+}
