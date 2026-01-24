@@ -25,6 +25,7 @@ namespace DigitalLibrary.Data
         public virtual DbSet<Document> Documents { get; set; }
 
         public virtual DbSet<Document_License> Document_Licenses { get; set; }
+        public virtual DbSet<Doc_Keyword> Doc_Keywords { get; set; }
 
         public virtual DbSet<Download> Downloads { get; set; }
 
@@ -185,24 +186,33 @@ namespace DigitalLibrary.Data
                             j.IndexerProperty<string>("AuthorID").HasMaxLength(20);
                         });
 
-                entity.HasMany(d => d.Keywords).WithMany(p => p.Documents)
-                    .UsingEntity<Dictionary<string, object>>(
-                        "Doc_Keyword",
-                        r => r.HasOne<Keyword>().WithMany()
-                            .HasForeignKey("KeywordID")
-                            .OnDelete(DeleteBehavior.ClientSetNull)
-                            .HasConstraintName("FK__Doc_Keywo__Keywo__01142BA1"),
-                        l => l.HasOne<Document>().WithMany()
-                            .HasForeignKey("DocumentID")
-                            .OnDelete(DeleteBehavior.ClientSetNull)
-                            .HasConstraintName("FK__Doc_Keywo__Docum__00200768"),
-                        j =>
-                        {
-                            j.HasKey("DocumentID", "KeywordID").HasName("PK__Doc_Keyw__19C2FC33AF8D401C");
-                            j.ToTable("Doc_Keyword");
-                            j.IndexerProperty<string>("DocumentID").HasMaxLength(20);
-                            j.IndexerProperty<string>("KeywordID").HasMaxLength(20);
-                        });
+            });
+            modelBuilder.Entity<Doc_Keyword>(entity =>
+            {
+                entity.ToTable("Doc_Keyword");
+
+                // Composite Primary Key
+                entity.HasKey(e => new { e.DocumentID, e.KeywordID });
+
+                entity.Property(e => e.DocumentID)
+                      .HasMaxLength(20)
+                      .IsRequired();
+
+                entity.Property(e => e.KeywordID)
+                      .HasMaxLength(20)
+                      .IsRequired();
+
+                // FK -> Document
+                entity.HasOne(e => e.Document)
+                      .WithMany(d => d.Doc_Keywords)
+                      .HasForeignKey(e => e.DocumentID)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // FK -> Keyword
+                entity.HasOne(e => e.Keyword)
+                      .WithMany(k => k.Doc_Keywords)
+                      .HasForeignKey(e => e.KeywordID)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Document_License>(entity =>
@@ -558,6 +568,7 @@ namespace DigitalLibrary.Data
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+        public DbSet<DigitalLibrary.Models.Doc_Keyword> Doc_Keyword { get; set; } = default!;
     }
 
 }
