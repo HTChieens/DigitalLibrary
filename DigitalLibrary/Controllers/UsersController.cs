@@ -1,122 +1,153 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using DigitalLibrary.Data;
+﻿using DigitalLibrary.DTOs;
+using DigitalLibrary.DTOs.Authors;
+using DigitalLibrary.DTOs.User;
 using DigitalLibrary.Models;
+using DigitalLibrary.Repositories;
+using DigitalLibrary.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
 
 namespace DigitalLibrary.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
+    [ApiController] 
+    [Authorize]
     public class UsersController : ControllerBase
     {
-        private readonly DigitalLibraryContext _context;
-
-        public UsersController(DigitalLibraryContext context)
+        private readonly IPasswordHasherService _passwordHasher;
+        private readonly IUserRepository _userRepo;
+        public UsersController(IUserRepository userRepo, IPasswordHasherService passwordHasher)
         {
-            _context = context;
+            _userRepo = userRepo;
+            _passwordHasher = passwordHasher;
         }
-
-        // GET: api/Users
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        [HttpGet("me")]
+        public async Task<ActionResult<ApiResponse<UserProfileDto>>> MyProfile()
         {
-            return await _context.Users.ToListAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await this._userRepo.Find(userId);
+            if (user == null) {
+                return NotFound(new ApiResponse<UserProfileDto>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy user",
+                    Data = null
+                }); 
+            }
+            var profile = new UserProfileDto
+            {
+                Name = user.Name,
+                Email = user.Email,
+                Class = user.Class, 
+                PhoneNumber = user.PhoneNumber,
+            };
+            return Ok(new ApiResponse<UserProfileDto>
+            {
+                Success = true,
+                Message ="Lấy thông tin cá nhân thành công",
+                Data = profile
+            });
         }
-
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(string id)
+        [HttpGet("me/author")]
+        public async Task<ActionResult<ApiResponse<AuthorDto>>> Author()
         {
-            var user = await _context.Users.FindAsync(id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return NotFound(new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Không tìm thấy user"
 
+            });
+            var author = await this._userRepo.GetAuthor(userId);
+            if (author == null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Bạn không phải là một tác giả",
+                });
+            }
+            var profile = new AuthorDto
+            {
+                Name = author.Name,
+                Email = author.Email,
+                Description = author.Description,
+                Expertise = author.Expertise,
+                Image = author.Image   
+            };
+            return Ok(new ApiResponse<AuthorDto>
+            {
+                Success = true,
+                Message = "Lấy thông tin tác giả thành công",
+                Data = profile
+            });
+        }
+        [HttpPut("me")]
+        public async Task<ActionResult<ApiResponse<UserUpdateDto>>> Update([FromBody] UserUpdateDto user)
+        {
+            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userUpdate = await _userRepo.Find(id);
+            if (userUpdate == null)
+            {
+                return NotFound(new ApiResponse<User>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy user",
+                    Data = null
+                });
+            }
+            userUpdate.PhoneNumber = user.PhoneNumber;
+            userUpdate.Name = user.Name;
+            userUpdate.UpdatedAt = DateTime.Now;
+            await this._userRepo.Update(userUpdate);
+            var response = new UserUpdateDto
+            {
+       
+                Name = userUpdate.Name,
+                PhoneNumber = userUpdate.PhoneNumber,
+            };
+            return Ok(new ApiResponse<UserUpdateDto>
+            {
+                Success = true,
+                Message = "Cập nhật thành công",
+                Data = response
+            });
+        }
+        [HttpPut("change-password")]
+        public async Task<ActionResult<ApiResponse<object>>> ChangePassword(ChangePasswordDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userRepo.Find(userId);
             if (user == null)
             {
-                return NotFound();
+                return  Unauthorized();
             }
-
-            return user;
-        }
-
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(string id, User user)
-        {
-            if (id != user.ID)
+            if(!this._passwordHasher.VerifyPassword(dto.OldPassword,user.PasswordHash))
             {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
+                return BadRequest(new ApiResponse<object>
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                    Success = false,
+                    Message = "Mật khẩu không đúng"
+                });
             }
-
-            return NoContent();
-        }
-
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
-        {
-            _context.Users.Add(user);
-            try
+            if (dto.OldPassword == dto.NewPassword)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (UserExists(user.ID))
+                return BadRequest(new ApiResponse<object>
                 {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                    Success = false,
+                    Message = "Mật khẩu mới không được trùng mật khẩu cũ"
+                });
             }
-
-            return CreatedAtAction("GetUser", new { id = user.ID }, user);
-        }
-
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(string id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            user.PasswordHash = _passwordHasher.HashPassword(dto.NewPassword);
+            user.UpdatedAt = DateTime.Now;
+            await this._userRepo.Update(user);
+            return Ok(new ApiResponse<object>
             {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(string id)
-        {
-            return _context.Users.Any(e => e.ID == id);
+                Success = true,
+                Message = "Thay đổi mật khẩu thành công"
+            });
         }
     }
 }
