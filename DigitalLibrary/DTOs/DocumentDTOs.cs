@@ -113,4 +113,16 @@
         public int? IntroEndPage { get; set; }
         public string CoverPath { get; set; } = null!;
     }
+
+    public class DownloadCreateDto
+    {
+        public string UserID { get; set; } = null!;
+        public string DocumentID { get; set; } = null!;
+    }
+
+    public class SavedDocumentCreateDto
+    {
+        public string UserID { get; set; } = null!;
+        public string DocumentID { get; set; } = null!;
+    }
 }

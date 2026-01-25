@@ -17,7 +17,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddDbContext<DigitalLibraryContext>(option =>
     option.UseSqlServer(
-        builder.Configuration.GetConnectionString("chien")
+        builder.Configuration.GetConnectionString("huy")
 ));
 
 var app = builder.Build();

@@ -100,7 +100,7 @@ namespace DigitalLibrary.Controllers
 
         // POST: api/Keywords
         [HttpPost]
-        public async Task<ActionResult<object>> PostKeyword(string name)
+        public async Task<ActionResult<object>> PostKeyword(string id , string name)
         {
             try
             {
@@ -114,24 +114,35 @@ namespace DigitalLibrary.Controllers
                     });
                 }
 
-                // Tạo ID từ Name (loại bỏ khoảng trắng, chuyển thành lowercase)
-                var keywordName = name.Trim().ToLower().Replace(" ", "-");
 
                 // Kiểm tra ID đã tồn tại chưa
-                var existsById = await _context.Keywords.AnyAsync(k => k.Name == keywordName);
+                var existsById = await _context.Keywords.AnyAsync(k => k.ID == id);
                 if (existsById)
                 {
                     return Conflict(new
                     {
                         success = false,
                         message = "Tạo từ khóa thất bại",
-                        error = $"Từ khóa '{keywordName}' đã tồn tại"
+                        error = $"ID : '{id}' đã tồn tại"
+                    });
+                }
+
+                // Kiem tra Name (loại bỏ khoảng trắng, chuyển thành lowercase)
+                var keywordName = name.Trim().ToLower().Replace(" ", "-");
+                var existsByName = await _context.Keywords.AnyAsync(k => k.Name.Trim().ToLower().Replace(" ", "-") == keywordName);
+                if (existsByName)
+                {
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "Tạo từ khóa thất bại",
+                        error = $"Từ khóa '{name}' đã tồn tại"
                     });
                 }
 
                 var keyword = new Keyword
                 {
-                    ID = keywordName,
+                    ID = id,
                     Name = name
                 };
 
