@@ -1,5 +1,6 @@
 ﻿using DigitalLibrary.Data;
 using DigitalLibrary.DTOs;
+using DigitalLibrary.DTOs.UserAuthors;
 using DigitalLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop.Infrastructure;

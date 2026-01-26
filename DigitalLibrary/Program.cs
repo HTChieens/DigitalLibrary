@@ -55,6 +55,7 @@ builder.Services.AddScoped<IRoleRepository,RoleRepository>();
 builder.Services.AddScoped<IPermissionRepository,PermissionRepository>();
 builder.Services.AddScoped<IAuthorRepository,AuthorRepository>();
 builder.Services.AddScoped<IUserAuthorRepository,UserAuthorRepository>();
+builder.Services.AddScoped<IReadingDocumentRepository,ReadingDocumentsRepository>();
 
 
 var jwtSecret = builder.Configuration["Jwt:Secret"];
