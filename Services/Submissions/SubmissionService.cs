@@ -1,4 +1,5 @@
 ﻿using DigitalLibrary.Data;
+using DigitalLibrary.DTOs.Librarians;
 using DigitalLibrary.DTOs.Submissions;
 using DigitalLibrary.Models;
 using DigitalLibrary.Services.SubmissionHistories;
@@ -303,5 +304,15 @@ namespace DigitalLibrary.Services.Submissions
             await tx.CommitAsync();
         }
 
+        public async Task AddDoctoCollectionAsync(AddDotoCollectionDto dto)
+        {
+            _context.CollectionDocuments.Add(new CollectionDocument
+            {
+                CollectionId = dto.CollectionId,
+                DocumentId = dto.DocumentId,
+                AddedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
     }
 }

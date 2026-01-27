@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "D:\\thuc_tap\\DigitalLibrary\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\dtos\\librarians\\adddotocollectiondto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:dtos\\librarians\\adddotocollectiondto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\services\\submissions\\submissionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:services\\submissions\\submissionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\controllers\\submissioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:controllers\\submissioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\services\\documents\\documentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:services\\documents\\documentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -11,16 +23,8 @@
       "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\services\\submissions\\submissionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:services\\submissions\\submissionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\services\\documents\\idocumentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:services\\documents\\idocumentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\controllers\\submissioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:controllers\\submissioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -35,19 +39,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "AddDotoCollectionDto.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\DTOs\\Librarians\\AddDotoCollectionDto.cs",
+              "RelativeDocumentMoniker": "DTOs\\Librarians\\AddDotoCollectionDto.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\DTOs\\Librarians\\AddDotoCollectionDto.cs*",
+              "RelativeToolTip": "DTOs\\Librarians\\AddDotoCollectionDto.cs*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-27T08:28:27.609Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "DocumentService.cs",
               "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Services\\Documents\\DocumentService.cs",
               "RelativeDocumentMoniker": "Services\\Documents\\DocumentService.cs",
-              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Services\\Documents\\DocumentService.cs*",
-              "RelativeToolTip": "Services\\Documents\\DocumentService.cs*",
-              "ViewState": "AgIAANICAAAAAAAAAAAvwOICAAAAAAAAAAAAAA==",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Services\\Documents\\DocumentService.cs",
+              "RelativeToolTip": "Services\\Documents\\DocumentService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOICAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-26T15:08:02.066Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "IDocumentService.cs",
               "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Services\\Documents\\IDocumentService.cs",
               "RelativeDocumentMoniker": "Services\\Documents\\IDocumentService.cs",
@@ -59,7 +76,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "DocumentController.cs",
               "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Controllers\\DocumentController.cs",
               "RelativeDocumentMoniker": "Controllers\\DocumentController.cs",
@@ -71,27 +88,29 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "SubmissionService.cs",
               "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Services\\Submissions\\SubmissionService.cs",
               "RelativeDocumentMoniker": "Services\\Submissions\\SubmissionService.cs",
               "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Services\\Submissions\\SubmissionService.cs",
               "RelativeToolTip": "Services\\Submissions\\SubmissionService.cs",
-              "ViewState": "AgIAADgAAAAAAAAAAAAuwEwAAAB1AAAAAAAAAA==",
+              "ViewState": "AgIAABoBAAAAAAAAAAAUwBcBAAA0AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-26T15:11:54.161Z"
+              "WhenOpened": "2026-01-26T15:11:54.161Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 2,
               "Title": "SubmissionController.cs",
               "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Controllers\\SubmissionController.cs",
               "RelativeDocumentMoniker": "Controllers\\SubmissionController.cs",
               "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Controllers\\SubmissionController.cs",
               "RelativeToolTip": "Controllers\\SubmissionController.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAABkAAAAxAAAAAAAAAA==",
+              "ViewState": "AgIAADIAAAAAAAAAAAAkwEcAAAA9AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-26T15:06:52.096Z"
+              "WhenOpened": "2026-01-26T15:06:52.096Z",
+              "EditorCaption": ""
             }
           ]
         }

@@ -198,7 +198,7 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "id",
+        "Name": "submissionId",
         "Type": "System.Guid",
         "IsRequired": false
       },

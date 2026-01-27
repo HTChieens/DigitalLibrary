@@ -1,4 +1,5 @@
 ﻿using DigitalLibrary.DTOs.Documents;
+using DigitalLibrary.DTOs.Librarians;
 using DigitalLibrary.DTOs.Submissions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,5 +13,6 @@ namespace DigitalLibrary.Services.Submissions
         Task FinalReviewAsync(Guid submissionId, string librarianId);
         Task AssignReviewerAsync(Guid submissionId, string lecturerId, string librarianId);
         Task UpdateAsync(Guid submissionId, Guid collectionId, string userId);
+        Task AddDoctoCollectionAsync(AddDotoCollectionDto dto);
     }
 }

@@ -1,4 +1,5 @@
-﻿using DigitalLibrary.DTOs.Submissions;
+﻿using DigitalLibrary.DTOs.Librarians;
+using DigitalLibrary.DTOs.Submissions;
 using DigitalLibrary.Services.Submissions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -65,14 +66,22 @@ namespace DigitalLibrary.Controllers
         }
 
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateCollection(Guid id, Guid collectionId)
+        public async Task<IActionResult> UpdateCollection(Guid submissionId, Guid collectionId)
         {
             var userId = User.Identity!.Name!;
 
-            await _submissionService.UpdateAsync(id, collectionId, "4");
+            await _submissionService.UpdateAsync(submissionId, collectionId, "4");
 
             return Ok();
         }
 
+        [HttpPost("adddoctocollection")]
+        public async Task<IActionResult> AddDoctoCollectionAsync(AddDotoCollectionDto dto)
+        {
+
+            await _submissionService.AddDoctoCollectionAsync(dto);
+
+            return Ok();
+        }
     }
 }

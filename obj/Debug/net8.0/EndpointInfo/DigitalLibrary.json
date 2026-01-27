@@ -321,7 +321,7 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "submissionId",
             "in": "query",
             "schema": {
               "type": "string",
