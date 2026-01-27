@@ -500,65 +500,86 @@ namespace DigitalLibrary.Services.Documents
             }
         }
 
-        private async Task UpdateAuthorsAsync(Models.Document doc, List<AuthorInputDto> newAuthors)
+        private async Task UpdateAuthorsAsync(Models.Document doc, List<AuthorInputDto> incoming)
         {
             await _context.Entry(doc)
                 .Collection(d => d.Authors)
                 .LoadAsync();
 
-            string Key(string? orcid, string? email, string name)
-                => !string.IsNullOrWhiteSpace(orcid) ? "ORCID:" + orcid.ToLower().Trim()
-                 : !string.IsNullOrWhiteSpace(email) ? "EMAIL:" + email.ToLower().Trim()
-                 : "NAME:" + name.ToLower().Trim();
+            string KeyEntity(Author a) =>
+                !string.IsNullOrWhiteSpace(a.Orcid) ? $"ORCID:{a.Orcid.ToLower()}" :
+                !string.IsNullOrWhiteSpace(a.Email) ? $"EMAIL:{a.Email.ToLower()}" :
+                $"NAME:{a.Name.ToLower()}";
 
-            var oldAuthors = doc.Authors.ToList();
+            string KeyDto(AuthorInputDto a) =>
+                !string.IsNullOrWhiteSpace(a.Orcid) ? $"ORCID:{a.Orcid.ToLower()}" :
+                !string.IsNullOrWhiteSpace(a.Email) ? $"EMAIL:{a.Email.ToLower()}" :
+                $"NAME:{a.Name.ToLower()}";
 
-            var newMap = newAuthors.ToDictionary(
-                a => Key(a.Orcid, a.Email, a.Name),
-                a => a
-            );
+            var existing = doc.Authors.ToDictionary(KeyEntity);
+            var usedKeys = new HashSet<string>();
 
-            foreach (var o in oldAuthors)
+            // 1️⃣ Update / Add
+            foreach (var dto in incoming)
             {
-                var key = Key(o.Orcid, o.Email, o.Name);
+                var key = KeyDto(dto);
+                usedKeys.Add(key);
 
-                if (newMap.TryGetValue(key, out var n))
+                if (existing.TryGetValue(key, out var author))
                 {
-                    o.Name = n.Name;
-                    o.Orcid = n.Orcid;
-                    o.Email = n.Email;
-                    o.Description = n.Description;
-                    o.Image = n.Image;
-                    o.Expertise = n.Expertise;
-
-                    newMap.Remove(key);
+                    author.Name = dto.Name;
+                    author.Orcid = dto.Orcid;
+                    author.Email = dto.Email;
+                    author.Description = dto.Description;
+                    author.Image = dto.Image;
+                    author.Expertise = dto.Expertise;
                 }
                 else
                 {
-                    doc.Authors.Remove(o);
+                    var dbAuthor = await _context.Authors.FirstOrDefaultAsync(a =>
+                        (!string.IsNullOrEmpty(dto.Orcid) && a.Orcid == dto.Orcid) ||
+                        (!string.IsNullOrEmpty(dto.Email) && a.Email == dto.Email) ||
+                        a.Name.ToLower() == dto.Name.Trim().ToLower()
+                    );
+
+                    if (dbAuthor == null)
+                    {
+                        dbAuthor = new Author
+                        {
+                            Id = Guid.NewGuid().ToString("N")[..16],
+                            Name = dto.Name,
+                            Orcid = dto.Orcid,
+                            Email = dto.Email,
+                            Description = dto.Description,
+                            Image = dto.Image,
+                            Expertise = dto.Expertise
+                        };
+                        _context.Authors.Add(dbAuthor);
+                    }
+
+                    doc.Authors.Add(dbAuthor);
                 }
             }
 
-            foreach (var dto in newMap.Values)
+            // 2️⃣ Remove + delete orphan
+            var toRemove = existing
+                .Where(e => !usedKeys.Contains(e.Key))
+                .Select(e => e.Value)
+                .ToList();
+
+            foreach (var author in toRemove)
             {
-                var author = await GetOrCreateAuthorAsync(dto);
-                doc.Authors.Add(author);
+                doc.Authors.Remove(author);
+
+                await _context.Entry(author)
+                    .Collection(a => a.Documents)
+                    .LoadAsync();
+
+                if (!author.Documents.Any())
+                {
+                    _context.Authors.Remove(author);
+                }
             }
-
-            await _context.SaveChangesAsync();
-
-            var join = _context.Set<Dictionary<string, object>>("DocumentAuthor");
-
-            var usedIds = await join
-                .Select(j => j["AuthorsId"])
-                .Distinct()
-                .ToListAsync();
-
-            var unusedAuthors = await _context.Authors
-                .Where(a => !usedIds.Contains(a.Id))
-                .ToListAsync();
-
-            _context.Authors.RemoveRange(unusedAuthors);
         }
 
         private async Task UpdateKeywordsAsync(Models.Document doc, List<string> incoming)
@@ -567,49 +588,57 @@ namespace DigitalLibrary.Services.Documents
                 .Collection(d => d.Keywords)
                 .LoadAsync();
 
-            var newSet = incoming
-                .Select(k => k.Trim().ToLower())
-                .ToHashSet();
+            string Normalize(string s) => s.Trim().ToLower();
 
-            var old = doc.Keywords.ToList();
+            var existing = doc.Keywords
+                .ToDictionary(k => Normalize(k.Name));
 
-            foreach (var k in old)
+            var used = new HashSet<string>();
+
+            // 1️⃣ Add / attach
+            foreach (var name in incoming)
             {
-                if (!newSet.Contains(k.Name.ToLower()))
-                    doc.Keywords.Remove(k);
-                else
-                    newSet.Remove(k.Name.ToLower());
-            }
+                var key = Normalize(name);
+                used.Add(key);
 
-            foreach (var name in newSet)
-            {
-                var keyword = await _context.Keywords
-                    .FirstOrDefaultAsync(k => k.Name.ToLower() == name)
-                    ?? new Keyword
+                if (existing.ContainsKey(key))
+                    continue;
+
+                var dbKeyword = await _context.Keywords
+                    .FirstOrDefaultAsync(k => k.Name.ToLower() == key);
+
+                if (dbKeyword == null)
+                {
+                    dbKeyword = new Keyword
                     {
                         Id = Guid.NewGuid().ToString("N")[..16],
-                        Name = name
+                        Name = name.Trim()
                     };
+                    _context.Keywords.Add(dbKeyword);
+                }
 
-                if (_context.Entry(keyword).State == EntityState.Detached)
-                    _context.Keywords.Add(keyword);
-
-                doc.Keywords.Add(keyword);
+                doc.Keywords.Add(dbKeyword);
             }
 
-            await _context.SaveChangesAsync();
+            // 2️⃣ Remove + delete orphan
+            var toRemove = existing
+                .Where(k => !used.Contains(k.Key))
+                .Select(k => k.Value)
+                .ToList();
 
-            var usedIds = await _context.Documents
-                .SelectMany(d => d.Keywords)
-                .Select(k => k.Id)
-                .Distinct()
-                .ToListAsync();
+            foreach (var keyword in toRemove)
+            {
+                doc.Keywords.Remove(keyword);
 
-            _context.Keywords.RemoveRange(
-                await _context.Keywords
-                    .Where(k => !usedIds.Contains(k.Id))
-                    .ToListAsync()
-            );
+                await _context.Entry(keyword)
+                    .Collection(k => k.Documents)
+                    .LoadAsync();
+
+                if (!keyword.Documents.Any())
+                {
+                    _context.Keywords.Remove(keyword);
+                }
+            }
         }
 
         private async Task UpdateIdentifiersAsync(string documentId, List<IdentifierDto> incoming)
@@ -650,40 +679,44 @@ namespace DigitalLibrary.Services.Documents
                 .Include(dl => dl.License)
                 .LoadAsync();
 
-            var existing = doc.DocumentLicenses.ToDictionary(
-                dl => dl.LicenseId
-            );
+            var existing = doc.DocumentLicenses
+                .ToDictionary(dl => dl.LicenseId.ToString());
 
+            var usedKeys = new HashSet<string>();
+
+            // 1️⃣ Add / attach
             foreach (var dto in incoming)
             {
                 License license;
 
                 if (dto.Id.HasValue)
                 {
-                    license = await _context.Licenses.FirstOrDefaultAsync(l => l.Id == dto.Id.Value)
+                    license = await _context.Licenses
+                        .FirstOrDefaultAsync(l => l.Id == dto.Id.Value)
                         ?? throw new Exception("License not found");
+
+                    usedKeys.Add(dto.Id.Value.ToString());
                 }
                 else
                 {
-                    var name = dto.Name.Trim().ToLower();
+                    var nameKey = dto.Name!.Trim().ToLower();
+                    usedKeys.Add($"NAME:{nameKey}");
 
                     license = await _context.Licenses
-                        .FirstOrDefaultAsync(l => l.Name.ToLower() == name)
-                        ?? new License
+                        .FirstOrDefaultAsync(l => l.Name.ToLower() == nameKey);
+
+                    if (license == null)
+                    {
+                        license = new License
                         {
                             Id = Guid.NewGuid(),
-                            Name = dto.Name
+                            Name = dto.Name.Trim()
                         };
-
-                    if (_context.Entry(license).State == EntityState.Detached)
                         _context.Licenses.Add(license);
+                    }
                 }
 
-                if (existing.ContainsKey(license.Id))
-                {
-                    existing.Remove(license.Id);
-                }
-                else
+                if (!existing.ContainsKey(license.Id.ToString()))
                 {
                     doc.DocumentLicenses.Add(new DocumentLicense
                     {
@@ -694,22 +727,14 @@ namespace DigitalLibrary.Services.Documents
                 }
             }
 
-            foreach (var removed in existing.Values)
+            // 2️⃣ Remove mapping
+            foreach (var dl in existing.Values)
             {
-                doc.DocumentLicenses.Remove(removed);
+                if (!usedKeys.Contains(dl.LicenseId.ToString()))
+                {
+                    doc.DocumentLicenses.Remove(dl);
+                }
             }
-
-            var usedLicenseIds = await _context.DocumentLicenses
-    .Select(dl => dl.LicenseId)
-    .Distinct()
-    .ToListAsync();
-
-            var unusedLicenses = await _context.Licenses
-                .Where(l => !usedLicenseIds.Contains(l.Id))
-                .ToListAsync();
-
-            _context.Licenses.RemoveRange(unusedLicenses);
-
         }
 
         public async Task UpdateAsync(Guid submissionId, UpdateDocumentDto dto)
