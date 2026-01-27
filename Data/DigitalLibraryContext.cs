@@ -1,0 +1,667 @@
+﻿using System;
+using System.Collections.Generic;
+using DigitalLibrary.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace DigitalLibrary.Data;
+
+public partial class DigitalLibraryContext : DbContext
+{
+    public DigitalLibraryContext()
+    {
+    }
+
+    public DigitalLibraryContext(DbContextOptions<DigitalLibraryContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<Author> Authors { get; set; }
+
+    public virtual DbSet<Collection> Collections { get; set; }
+
+    public virtual DbSet<CollectionDocument> CollectionDocuments { get; set; }
+
+    public virtual DbSet<CollectionPermission> CollectionPermissions { get; set; }
+
+    public virtual DbSet<Community> Communities { get; set; }
+
+    public virtual DbSet<Document> Documents { get; set; }
+
+    public virtual DbSet<DocumentLicense> DocumentLicenses { get; set; }
+
+    public virtual DbSet<Download> Downloads { get; set; }
+
+    public virtual DbSet<ExternalBook> ExternalBooks { get; set; }
+
+    public virtual DbSet<Identifier> Identifiers { get; set; }
+
+    public virtual DbSet<InternalBook> InternalBooks { get; set; }
+
+    public virtual DbSet<Keyword> Keywords { get; set; }
+
+    public virtual DbSet<License> Licenses { get; set; }
+
+    public virtual DbSet<Permission> Permissions { get; set; }
+
+    public virtual DbSet<ReadingDocument> ReadingDocuments { get; set; }
+
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+
+    public virtual DbSet<Research> Researches { get; set; }
+
+    public virtual DbSet<ResearchPublication> ResearchPublications { get; set; }
+
+    public virtual DbSet<Review> Reviews { get; set; }
+
+    public virtual DbSet<Role> Roles { get; set; }
+
+    public virtual DbSet<SavedDocument> SavedDocuments { get; set; }
+
+    public virtual DbSet<Submission> Submissions { get; set; }
+
+    public virtual DbSet<SubmissionHistory> SubmissionHistories { get; set; }
+
+    public virtual DbSet<Thesis> Theses { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<UserAuthor> UserAuthors { get; set; }
+
+    public  virtual DbSet<DocumentFile> DocumentFiles { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DocumentFile>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.DocumentId)
+                  .HasMaxLength(20)
+                  .IsRequired();
+
+            entity.HasOne(x => x.Document)
+                  .WithMany(d => d.Files)
+                  .HasForeignKey(x => x.DocumentId);
+        });
+
+
+        modelBuilder.Entity<Author>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Authors__3214EC27D001F412");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(20)
+                .HasColumnName("ID");
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Email).HasMaxLength(50);
+            entity.Property(e => e.Expertise).HasMaxLength(50);
+            entity.Property(e => e.Image).HasMaxLength(255);
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Collection>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Collecti__3214EC276AC7F587");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("ID");
+            entity.Property(e => e.CommunityId).HasColumnName("CommunityID");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Name).HasMaxLength(255);
+
+            entity.HasOne(d => d.Community).WithMany(p => p.Collections)
+                .HasForeignKey(d => d.CommunityId)
+                .HasConstraintName("FK_Collection_Community");
+        });
+
+        modelBuilder.Entity<CollectionDocument>(entity =>
+        {
+            entity.HasKey(e => new { e.CollectionId, e.DocumentId }).HasName("PK_Collection_Documents");
+
+            entity.ToTable("Collection_Document");
+
+            entity.Property(e => e.CollectionId).HasColumnName("CollectionID");
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.AddedAt).HasDefaultValueSql("(sysdatetime())");
+
+            entity.HasOne(d => d.Collection).WithMany(p => p.CollectionDocuments)
+                .HasForeignKey(d => d.CollectionId)
+                .HasConstraintName("FK_CD_Collection");
+
+            entity.HasOne(d => d.Document).WithMany(p => p.CollectionDocuments)
+                .HasForeignKey(d => d.DocumentId)
+                .HasConstraintName("FK_CD_Document");
+        });
+
+        modelBuilder.Entity<CollectionPermission>(entity =>
+        {
+            entity.HasKey(e => new { e.CollectionId, e.RoleId, e.PermissionId });
+
+            entity.ToTable("Collection_Permission");
+
+            entity.Property(e => e.CollectionId).HasColumnName("CollectionID");
+            entity.Property(e => e.RoleId)
+                .HasMaxLength(20)
+                .HasColumnName("RoleID");
+            entity.Property(e => e.PermissionId)
+                .HasMaxLength(20)
+                .HasColumnName("PermissionID");
+
+            entity.HasOne(d => d.Collection).WithMany(p => p.CollectionPermissions)
+                .HasForeignKey(d => d.CollectionId)
+                .HasConstraintName("FK_CP_Collection");
+
+            entity.HasOne(d => d.Permission).WithMany(p => p.CollectionPermissions)
+                .HasForeignKey(d => d.PermissionId)
+                .HasConstraintName("FK_CP_Permission");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.CollectionPermissions)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("FK_CP_Role");
+        });
+
+        modelBuilder.Entity<Community>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Communit__3214EC276C825DF9");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("ID");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.Name).HasMaxLength(255);
+            entity.Property(e => e.ParentCommunityId).HasColumnName("ParentCommunityID");
+
+            entity.HasOne(d => d.ParentCommunity).WithMany(p => p.InverseParentCommunity)
+                .HasForeignKey(d => d.ParentCommunityId)
+                .HasConstraintName("FK_Community_Parent");
+        });
+
+        modelBuilder.Entity<Document>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Document__3214EC27AE0AA1B5");
+
+            entity.HasIndex(e => e.PublicationDate, "IX_Documents_PublicationDate");
+
+            entity.HasIndex(e => e.Title, "IX_Documents_Title");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(20)
+                .HasColumnName("ID");
+            entity.Property(e => e.CoverPath).HasMaxLength(255);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.DocumentType)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Title).HasMaxLength(255);
+
+            entity.HasMany(d => d.Authors).WithMany(p => p.Documents)
+                .UsingEntity<Dictionary<string, object>>(
+                    "DocAuthor",
+                    r => r.HasOne<Author>().WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_DocAuthor_Author"),
+                    l => l.HasOne<Document>().WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_DocAuthor_Document"),
+                    j =>
+                    {
+                        j.HasKey("DocumentId", "AuthorId").HasName("PK__Doc_Auth__4DB340AE382E99FF");
+                        j.ToTable("Doc_Author");
+                        j.HasIndex(new[] { "AuthorId" }, "IX_Doc_Author_AuthorID");
+                        j.IndexerProperty<string>("DocumentId")
+                            .HasMaxLength(20)
+                            .HasColumnName("DocumentID");
+                        j.IndexerProperty<string>("AuthorId")
+                            .HasMaxLength(20)
+                            .HasColumnName("AuthorID");
+                    });
+
+            entity.HasMany(d => d.Keywords).WithMany(p => p.Documents)
+                .UsingEntity<Dictionary<string, object>>(
+                    "DocKeyword",
+                    r => r.HasOne<Keyword>().WithMany()
+                        .HasForeignKey("KeywordId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_DocKeyword_Keyword"),
+                    l => l.HasOne<Document>().WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_DocKeyword_Document"),
+                    j =>
+                    {
+                        j.HasKey("DocumentId", "KeywordId").HasName("PK__Doc_Keyw__19C2FC33C9059973");
+                        j.ToTable("Doc_Keyword");
+                        j.IndexerProperty<string>("DocumentId")
+                            .HasMaxLength(20)
+                            .HasColumnName("DocumentID");
+                        j.IndexerProperty<string>("KeywordId")
+                            .HasMaxLength(20)
+                            .HasColumnName("KeywordID");
+                    });
+        });
+
+        modelBuilder.Entity<DocumentLicense>(entity =>
+        {
+            entity.HasKey(e => new { e.DocumentId, e.LicenseId });
+
+            entity.ToTable("Document_License");
+
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.LicenseId).HasColumnName("LicenseID");
+            entity.Property(e => e.AcceptedAt).HasDefaultValueSql("(sysdatetime())");
+
+            entity.HasOne(d => d.Document).WithMany(p => p.DocumentLicenses)
+                .HasForeignKey(d => d.DocumentId)
+                .HasConstraintName("FK_DL_Document");
+
+            entity.HasOne(d => d.License).WithMany(p => p.DocumentLicenses)
+                .HasForeignKey(d => d.LicenseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_DL_License");
+        });
+
+        modelBuilder.Entity<Download>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Download__3214EC276D6DD3A0");
+
+            entity.HasIndex(e => e.DocumentId, "IX_Downloads_DocumentID");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.DownloadedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UserId)
+                .HasMaxLength(20)
+                .HasColumnName("UserID");
+
+            entity.HasOne(d => d.Document).WithMany(p => p.Downloads)
+                .HasForeignKey(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Downloads__Docum__693CA210");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Downloads)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Downloads__UserI__6A30C649");
+        });
+
+        modelBuilder.Entity<ExternalBook>(entity =>
+        {
+            entity.HasKey(e => e.DocumentId).HasName("PK__External__1ABEEF6FC2585AA9");
+
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.Publisher).HasMaxLength(100);
+            entity.Property(e => e.Version).HasDefaultValue(1);
+
+            entity.HasOne(d => d.Document).WithOne(p => p.ExternalBook)
+                .HasForeignKey<ExternalBook>(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ExternalB__Docum__6B24EA82");
+        });
+
+        modelBuilder.Entity<Identifier>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Document__3214EC27F3657B8A");
+
+            entity.ToTable("Identifier");
+
+            entity.HasIndex(e => new { e.Type, e.Value }, "UQ_Document_Identifier").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("ID");
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.Type).HasMaxLength(50);
+            entity.Property(e => e.Value).HasMaxLength(255);
+
+            entity.HasOne(d => d.Document).WithMany(p => p.Identifiers)
+                .HasForeignKey(d => d.DocumentId)
+                .HasConstraintName("FK_DI_Document");
+        });
+
+        modelBuilder.Entity<InternalBook>(entity =>
+        {
+            entity.HasKey(e => e.DocumentId).HasName("PK__Internal__1ABEEF6F6F93E4C3");
+
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.DocumentType).HasMaxLength(50);
+            entity.Property(e => e.Faculty).HasMaxLength(100);
+            entity.Property(e => e.Version).HasDefaultValue(1);
+
+            entity.HasOne(d => d.Document).WithOne(p => p.InternalBook)
+                .HasForeignKey<InternalBook>(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__InternalB__Docum__6C190EBB");
+        });
+
+        modelBuilder.Entity<Keyword>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Keywords__3214EC27B6B55425");
+
+            entity.HasIndex(e => e.Name, "UQ__Keywords__737584F68E1F2F46").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(20)
+                .HasColumnName("ID");
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<License>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Licenses__3214EC27E3B7B822");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("ID");
+            entity.Property(e => e.Name).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<Permission>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Permissi__3214EC2705B134F8");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(20)
+                .HasColumnName("ID");
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<ReadingDocument>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.DocumentId, e.FirstReadAt });
+
+            entity.Property(e => e.UserId)
+                .HasMaxLength(20)
+                .HasColumnName("UserID");
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.FirstReadAt).HasColumnType("datetime");
+            entity.Property(e => e.IsCounted).HasDefaultValue(false);
+            entity.Property(e => e.LastReadAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Document).WithMany(p => p.ReadingDocuments)
+                .HasForeignKey(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ReadingDo__Docum__6D0D32F4");
+
+            entity.HasOne(d => d.User).WithMany(p => p.ReadingDocuments)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ReadingDo__UserI__6E01572D");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__RefreshT__3214EC0754BEFD94");
+
+            entity.HasIndex(e => e.UserId, "IX_RefreshTokens_UserId");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.TokenHash).HasMaxLength(255);
+            entity.Property(e => e.UserId).HasMaxLength(20);
+
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_RefreshToken_User");
+        });
+
+        modelBuilder.Entity<Research>(entity =>
+        {
+            entity.HasKey(e => e.DocumentId).HasName("PK__Research__1ABEEF6F50E47717");
+
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.Abstract).HasMaxLength(1000);
+            entity.Property(e => e.ResearchLevel)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("FACULTY");
+
+            entity.HasOne(d => d.Document).WithOne(p => p.Research)
+                .HasForeignKey<Research>(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Researche__Docum__6EF57B66");
+        });
+
+        modelBuilder.Entity<ResearchPublication>(entity =>
+        {
+            entity.HasKey(e => e.DocumentId).HasName("PK__Research__1ABEEF6FA8F96871");
+
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.PublicationType).HasMaxLength(50);
+            entity.Property(e => e.VenueName).HasMaxLength(150);
+
+            entity.HasOne(d => d.Document).WithOne(p => p.ResearchPublication)
+                .HasForeignKey<ResearchPublication>(d => d.DocumentId)
+                .HasConstraintName("FK__ResearchP__Docum__6FE99F9F");
+        });
+
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Reviews__3214EC2742688F98");
+
+            entity.HasIndex(e => e.DocumentId, "IX_Reviews_DocumentID");
+
+            entity.HasIndex(e => new { e.UserId, e.DocumentId }, "UQ_Reviews_User_Document").IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.UserId)
+                .HasMaxLength(20)
+                .HasColumnName("UserID");
+
+            entity.HasOne(d => d.Document).WithMany(p => p.Reviews)
+                .HasForeignKey(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Reviews_Document");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Reviews)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Reviews_User");
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Roles__3214EC275DD1AF11");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(20)
+                .HasColumnName("ID");
+            entity.Property(e => e.Name).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<SavedDocument>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.DocumentId }).HasName("PK__SavedDoc__F623225AF33361C1");
+
+            entity.Property(e => e.UserId)
+                .HasMaxLength(20)
+                .HasColumnName("UserID");
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.SavedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Document).WithMany(p => p.SavedDocuments)
+                .HasForeignKey(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__SavedDocu__Docum__72C60C4A");
+
+            entity.HasOne(d => d.User).WithMany(p => p.SavedDocuments)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__SavedDocu__UserI__73BA3083");
+        });
+
+        modelBuilder.Entity<Submission>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Submissi__3214EC27911D1057");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("ID");
+            entity.Property(e => e.CollectionId).HasColumnName("CollectionID");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CurrentStep).HasDefaultValue(1);
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.SubmitterId)
+                .HasMaxLength(20)
+                .HasColumnName("SubmitterID");
+
+            entity.HasOne(d => d.Collection).WithMany(p => p.Submissions)
+                .HasForeignKey(d => d.CollectionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Submission_Collection");
+
+            entity.HasOne(d => d.Document).WithMany(p => p.Submissions)
+                .HasForeignKey(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Submission_Document");
+
+            entity.HasOne(d => d.Submitter).WithMany(p => p.Submissions)
+                .HasForeignKey(d => d.SubmitterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Submission_User");
+        });
+
+        modelBuilder.Entity<SubmissionHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Submissi__3214EC270D27D72B");
+
+            entity.ToTable("Submission_History");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("ID");
+            entity.Property(e => e.Action).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.PerformedBy).HasMaxLength(20);
+            entity.Property(e => e.SubmissionId).HasColumnName("SubmissionID");
+
+            entity.HasOne(d => d.PerformedByNavigation).WithMany(p => p.SubmissionHistories)
+                .HasForeignKey(d => d.PerformedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SH_User");
+
+            entity.HasOne(d => d.Submission).WithMany(p => p.SubmissionHistories)
+                .HasForeignKey(d => d.SubmissionId)
+                .HasConstraintName("FK_SH_Submission");
+        });
+
+        modelBuilder.Entity<Thesis>(entity =>
+        {
+            entity.HasKey(e => e.DocumentId).HasName("PK__Theses__1ABEEF6F0E5CB687");
+
+            entity.Property(e => e.DocumentId)
+                .HasMaxLength(20)
+                .HasColumnName("DocumentID");
+            entity.Property(e => e.Abstract).HasMaxLength(1000);
+            entity.Property(e => e.AdvisorName).HasMaxLength(100);
+            entity.Property(e => e.DegreeLevel).HasMaxLength(50);
+            entity.Property(e => e.Discipline).HasMaxLength(100);
+
+            entity.HasOne(d => d.Document).WithOne(p => p.Thesis)
+                .HasForeignKey<Thesis>(d => d.DocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Theses__Document__74AE54BC");
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Users__3214EC279E419D0A");
+
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D1053438417698").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(20)
+                .HasColumnName("ID");
+            entity.Property(e => e.Class).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).HasMaxLength(255);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(15);
+            entity.Property(e => e.RoleId)
+                .HasMaxLength(20)
+                .HasColumnName("RoleID");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Users__RoleID__75A278F5");
+        });
+
+        modelBuilder.Entity<UserAuthor>(entity =>
+        {
+            entity.HasKey(e => e.UserId).HasName("PK__User_Aut__1788CCACE4C4842D");
+
+            entity.ToTable("User_Author");
+
+            entity.HasIndex(e => e.AuthorId, "UQ__User_Aut__70DAFC1528C89FFD").IsUnique();
+
+            entity.Property(e => e.UserId)
+                .HasMaxLength(20)
+                .HasColumnName("UserID");
+            entity.Property(e => e.AuthorId)
+                .HasMaxLength(20)
+                .HasColumnName("AuthorID");
+
+            entity.HasOne(d => d.Author).WithOne(p => p.UserAuthor)
+                .HasForeignKey<UserAuthor>(d => d.AuthorId)
+                .HasConstraintName("FK_UA_Author");
+
+            entity.HasOne(d => d.User).WithOne(p => p.UserAuthor)
+                .HasForeignKey<UserAuthor>(d => d.UserId)
+                .HasConstraintName("FK_UA_User");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}

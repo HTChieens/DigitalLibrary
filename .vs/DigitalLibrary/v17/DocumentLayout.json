@@ -1,0 +1,231 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\thuc_tap\\DigitalLibrary\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\models\\author.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:models\\author.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\data\\digitallibrarycontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:data\\digitallibrarycontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\services\\documents\\documentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:services\\documents\\documentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\models\\document.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:models\\document.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\dtos\\documents\\licenseinputdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:dtos\\documents\\licenseinputdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\dtos\\documents\\updatedocumentdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:dtos\\documents\\updatedocumentdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\services\\submissions\\submissionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:services\\submissions\\submissionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\services\\documents\\idocumentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:services\\documents\\idocumentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\dtos\\documents\\createdocumentdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:dtos\\documents\\createdocumentdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|d:\\thuc_tap\\digitallibrary\\controllers\\submissioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C99C77BC-6D29-4DC7-BC89-09D9B910BAE3}|DigitalLibrary.csproj|solutionrelative:controllers\\submissioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAABdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-27T06:53:40.24Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Author.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Models\\Author.cs",
+              "RelativeDocumentMoniker": "Models\\Author.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Models\\Author.cs",
+              "RelativeToolTip": "Models\\Author.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAA+wBMAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-27T05:24:43.405Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Document.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Models\\Document.cs",
+              "RelativeDocumentMoniker": "Models\\Document.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Models\\Document.cs",
+              "RelativeToolTip": "Models\\Document.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAAAuwB0AAAA/AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-27T05:12:59.333Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-27T05:07:22.497Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "DigitalLibraryContext.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Data\\DigitalLibraryContext.cs",
+              "RelativeDocumentMoniker": "Data\\DigitalLibraryContext.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Data\\DigitalLibraryContext.cs",
+              "RelativeToolTip": "Data\\DigitalLibraryContext.cs",
+              "ViewState": "AgIAAH0CAAAAAAAAAAAYwJYCAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-27T04:11:21.446Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "UpdateDocumentDto.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\DTOs\\Documents\\UpdateDocumentDto.cs",
+              "RelativeDocumentMoniker": "DTOs\\Documents\\UpdateDocumentDto.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\DTOs\\Documents\\UpdateDocumentDto.cs",
+              "RelativeToolTip": "DTOs\\Documents\\UpdateDocumentDto.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAUwBoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-27T02:29:51.436Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "LicenseInputDto.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\DTOs\\Documents\\LicenseInputDto.cs",
+              "RelativeDocumentMoniker": "DTOs\\Documents\\LicenseInputDto.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\DTOs\\Documents\\LicenseInputDto.cs",
+              "RelativeToolTip": "DTOs\\Documents\\LicenseInputDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-27T02:28:33.599Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "DocumentService.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Services\\Documents\\DocumentService.cs",
+              "RelativeDocumentMoniker": "Services\\Documents\\DocumentService.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Services\\Documents\\DocumentService.cs",
+              "RelativeToolTip": "Services\\Documents\\DocumentService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMcCAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-26T15:08:02.066Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "CreateDocumentDto.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\DTOs\\Documents\\CreateDocumentDto.cs",
+              "RelativeDocumentMoniker": "DTOs\\Documents\\CreateDocumentDto.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\DTOs\\Documents\\CreateDocumentDto.cs",
+              "RelativeToolTip": "DTOs\\Documents\\CreateDocumentDto.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAABoAAABBAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-27T02:22:23.375Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "IDocumentService.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Services\\Documents\\IDocumentService.cs",
+              "RelativeDocumentMoniker": "Services\\Documents\\IDocumentService.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Services\\Documents\\IDocumentService.cs",
+              "RelativeToolTip": "Services\\Documents\\IDocumentService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-26T16:13:48.273Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "DocumentController.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Controllers\\DocumentController.cs",
+              "RelativeDocumentMoniker": "Controllers\\DocumentController.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Controllers\\DocumentController.cs",
+              "RelativeToolTip": "Controllers\\DocumentController.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-26T15:10:31.487Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "SubmissionService.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Services\\Submissions\\SubmissionService.cs",
+              "RelativeDocumentMoniker": "Services\\Submissions\\SubmissionService.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Services\\Submissions\\SubmissionService.cs",
+              "RelativeToolTip": "Services\\Submissions\\SubmissionService.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAAAuwEwAAAB1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-26T15:11:54.161Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "SubmissionController.cs",
+              "DocumentMoniker": "D:\\thuc_tap\\DigitalLibrary\\Controllers\\SubmissionController.cs",
+              "RelativeDocumentMoniker": "Controllers\\SubmissionController.cs",
+              "ToolTip": "D:\\thuc_tap\\DigitalLibrary\\Controllers\\SubmissionController.cs",
+              "RelativeToolTip": "Controllers\\SubmissionController.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABkAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-26T15:06:52.096Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
