@@ -37,7 +37,7 @@ namespace DigitalLibrary.Controllers
                         rp.PublicationType,
                         Document = new
                         {
-                            rp.Document.ID,
+                            rp.Document.DocumentId,
                             rp.Document.Title,
                             rp.Document.CreatedAt
                         }
@@ -151,7 +151,7 @@ namespace DigitalLibrary.Controllers
                         rp.PublicationType,
                         Document = new
                         {
-                            rp.Document.ID,
+                            rp.Document.DocumentId,
                             rp.Document.Title
                         }
                     })
@@ -202,7 +202,7 @@ namespace DigitalLibrary.Controllers
                         rp.PublicationType,
                         Document = new
                         {
-                            rp.Document.ID,
+                            rp.Document.DocumentId,
                             rp.Document.Title
                         }
                     })
@@ -264,7 +264,7 @@ namespace DigitalLibrary.Controllers
                 }
 
                 // Kiểm tra Document tồn tại
-                var documentExists = await _context.Documents.AnyAsync(d => d.ID == dto.DocumentID);
+                var documentExists = await _context.Documents.AnyAsync(d => d.DocumentId == dto.DocumentID);
                 if (!documentExists)
                 {
                     return NotFound(new
@@ -307,7 +307,7 @@ namespace DigitalLibrary.Controllers
                         rp.PublicationType,
                         Document = new
                         {
-                            rp.Document.ID,
+                            rp.Document.DocumentId,
                             rp.Document.Title
                         }
                     })
@@ -405,7 +405,7 @@ namespace DigitalLibrary.Controllers
                         rp.PublicationType,
                         Document = new
                         {
-                            rp.Document.ID,
+                            rp.Document.DocumentId,
                             rp.Document.Title
                         }
                     })

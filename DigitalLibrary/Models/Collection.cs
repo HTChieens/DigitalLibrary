@@ -5,9 +5,9 @@ namespace DigitalLibrary.Models;
 
 public partial class Collection
 {
-    public Guid ID { get; set; }
+    public Guid Id { get; set; }
 
-    public Guid CommunityID { get; set; }
+    public Guid CommunityId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -19,9 +19,9 @@ public partial class Collection
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual ICollection<Collection_Document> Collection_Documents { get; set; } = new List<Collection_Document>();
+    public virtual ICollection<CollectionDocument> CollectionDocuments { get; set; } = new List<CollectionDocument>();
 
-    public virtual ICollection<Collection_Permission> Collection_Permissions { get; set; } = new List<Collection_Permission>();
+    public virtual ICollection<CollectionPermission> CollectionPermissions { get; set; } = new List<CollectionPermission>();
 
     public virtual Community Community { get; set; } = null!;
 

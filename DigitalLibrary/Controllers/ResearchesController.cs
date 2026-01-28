@@ -37,7 +37,7 @@ namespace DigitalLibrary.Controllers
                         r.ResearchLevel,
                         Document = new
                         {
-                            r.Document.ID,
+                            r.Document.DocumentId,
                             r.Document.Title,
                             r.Document.CreatedAt
                         }
@@ -151,7 +151,7 @@ namespace DigitalLibrary.Controllers
                         r.ResearchLevel,
                         Document = new
                         {
-                            r.Document.ID,
+                            r.Document.DocumentId,
                             r.Document.Title
                         }
                     })
@@ -203,7 +203,7 @@ namespace DigitalLibrary.Controllers
                 }
 
                 // Kiểm tra Document tồn tại
-                var documentExists = await _context.Documents.AnyAsync(d => d.ID == dto.DocumentID);
+                var documentExists = await _context.Documents.AnyAsync(d => d.DocumentId == dto.DocumentID);
                 if (!documentExists)
                 {
                     return NotFound(new
@@ -246,7 +246,7 @@ namespace DigitalLibrary.Controllers
                         r.ResearchLevel,
                         Document = new
                         {
-                            r.Document.ID,
+                            r.Document.DocumentId,
                             r.Document.Title
                         }
                     })
@@ -334,7 +334,7 @@ namespace DigitalLibrary.Controllers
                         r.ResearchLevel,
                         Document = new
                         {
-                            r.Document.ID,
+                            r.Document.DocumentId,
                             r.Document.Title
                         }
                     })

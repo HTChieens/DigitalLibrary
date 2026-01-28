@@ -151,7 +151,7 @@ namespace DigitalLibrary.Controllers
                         eb.Version,
                         Document = new
                         {
-                            eb.Document.ID,
+                            eb.Document.DocumentId,
                             eb.Document.Title
                         }
                     })
@@ -213,7 +213,7 @@ namespace DigitalLibrary.Controllers
                 }
 
                 // Kiểm tra Document tồn tại
-                var documentExists = await _context.Documents.AnyAsync(d => d.ID == dto.DocumentID);
+                var documentExists = await _context.Documents.AnyAsync(d => d.DocumentId == dto.DocumentID);
                 if (!documentExists)
                 {
                     return NotFound(new
@@ -256,7 +256,7 @@ namespace DigitalLibrary.Controllers
                         eb.Version,
                         Document = new
                         {
-                            eb.Document.ID,
+                            eb.Document.DocumentId,
                             eb.Document.Title
                         }
                     })
@@ -354,7 +354,7 @@ namespace DigitalLibrary.Controllers
                         eb.Version,
                         Document = new
                         {
-                            eb.Document.ID,
+                            eb.Document.DocumentId,
                             eb.Document.Title
                         }
                     })

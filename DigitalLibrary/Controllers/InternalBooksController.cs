@@ -38,7 +38,7 @@ namespace DigitalLibrary.Controllers
                         ib.Version,
                         Document = new
                         {
-                            ib.Document.ID,
+                            ib.Document.DocumentId,
                             ib.Document.Title,
                             ib.Document.CreatedAt
                         }
@@ -154,7 +154,7 @@ namespace DigitalLibrary.Controllers
                         ib.Version,
                         Document = new
                         {
-                            ib.Document.ID,
+                            ib.Document.DocumentId,
                             ib.Document.Title
                         }
                     })
@@ -206,7 +206,7 @@ namespace DigitalLibrary.Controllers
                         ib.Version,
                         Document = new
                         {
-                            ib.Document.ID,
+                            ib.Document.DocumentId,
                             ib.Document.Title
                         }
                     })
@@ -278,7 +278,7 @@ namespace DigitalLibrary.Controllers
                 }
 
                 // Kiểm tra Document tồn tại
-                var documentExists = await _context.Documents.AnyAsync(d => d.ID == dto.DocumentID);
+                var documentExists = await _context.Documents.AnyAsync(d => d.DocumentId == dto.DocumentID);
                 if (!documentExists)
                 {
                     return NotFound(new
@@ -323,7 +323,7 @@ namespace DigitalLibrary.Controllers
                         ib.Version,
                         Document = new
                         {
-                            ib.Document.ID,
+                            ib.Document.DocumentId,
                             ib.Document.Title
                         }
                     })
@@ -433,7 +433,7 @@ namespace DigitalLibrary.Controllers
                         ib.Version,
                         Document = new
                         {
-                            ib.Document.ID,
+                            ib.Document.DocumentId,
                             ib.Document.Title
                         }
                     })

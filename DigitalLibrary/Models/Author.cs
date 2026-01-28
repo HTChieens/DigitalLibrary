@@ -17,6 +17,8 @@ public partial class Author
 
     public string? Expertise { get; set; }
 
+    public string? Orcid { get; set; }
+
     public virtual User_Author? User_Author { get; set; }
 
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();

@@ -1,6 +1,9 @@
 using DigitalLibrary.Data;
 using DigitalLibrary.Repositories;
 using DigitalLibrary.Services;
+using DigitalLibrary.Services.Documents;
+using DigitalLibrary.Services.SubmissionHistories;
+using DigitalLibrary.Services.Submissions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,7 +15,13 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<ISubmissionService, SubmissionService>();
+builder.Services.AddScoped<ISubmissionHistoryService, SubmissionHistoryService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -58,7 +67,7 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddDbContext<DigitalLibraryContext>(option =>
     option.UseSqlServer(
-        builder.Configuration.GetConnectionString("chien")
+        builder.Configuration.GetConnectionString("huy")
 ));
 builder.Services.AddSingleton<IPasswordHasherService,PasswordHasherService>();
 builder.Services.AddScoped<IAuthenService,AuthenService>();

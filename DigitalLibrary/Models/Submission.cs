@@ -5,13 +5,13 @@ namespace DigitalLibrary.Models;
 
 public partial class Submission
 {
-    public Guid ID { get; set; }
+    public Guid Id { get; set; }
 
-    public string DocumentID { get; set; } = null!;
+    public string DocumentId { get; set; } = null!;
 
-    public Guid CollectionID { get; set; }
+    public Guid CollectionId { get; set; }
 
-    public string SubmitterID { get; set; } = null!;
+    public string SubmitterId { get; set; } = null!;
 
     public string Status { get; set; } = null!;
 
@@ -25,7 +25,7 @@ public partial class Submission
 
     public virtual Document Document { get; set; } = null!;
 
-    public virtual ICollection<Submission_History> Submission_Histories { get; set; } = new List<Submission_History>();
+    public virtual ICollection<SubmissionHistory> SubmissionHistories { get; set; } = new List<SubmissionHistory>();
 
     public virtual User Submitter { get; set; } = null!;
 }

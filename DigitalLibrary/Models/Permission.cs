@@ -9,5 +9,5 @@ public partial class Permission
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<Collection_Permission> Collection_Permissions { get; set; } = new List<Collection_Permission>();
+    public virtual ICollection<CollectionPermission> CollectionPermissions { get; set; } = new List<CollectionPermission>();
 }

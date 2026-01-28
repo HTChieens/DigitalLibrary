@@ -38,7 +38,7 @@ public partial class User
 
     public virtual ICollection<SavedDocument> SavedDocuments { get; set; } = new List<SavedDocument>();
 
-    public virtual ICollection<Submission_History> Submission_Histories { get; set; } = new List<Submission_History>();
+    public virtual ICollection<SubmissionHistory> SubmissionHistories { get; set; } = new List<SubmissionHistory>();
 
     public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 

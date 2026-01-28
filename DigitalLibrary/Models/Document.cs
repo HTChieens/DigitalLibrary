@@ -5,15 +5,13 @@ namespace DigitalLibrary.Models;
 
 public partial class Document
 {
-    public string ID { get; set; } = null!;
+    public string DocumentId { get; set; } = null!;
 
     public string Title { get; set; } = null!;
 
     public string? Description { get; set; }
 
     public string DocumentType { get; set; } = null!;
-
-    public string FilePath { get; set; } = null!;
 
     public DateOnly PublicationDate { get; set; }
 
@@ -27,7 +25,7 @@ public partial class Document
 
     public bool IsDeleted { get; set; }
 
-    public virtual ICollection<Collection_Document> Collection_Documents { get; set; } = new List<Collection_Document>();
+    public virtual ICollection<CollectionDocument> CollectionDocuments { get; set; } = new List<CollectionDocument>();
 
     public virtual ICollection<Document_License> Document_Licenses { get; set; } = new List<Document_License>();
 
@@ -55,5 +53,8 @@ public partial class Document
 
     public virtual ICollection<Author> Authors { get; set; } = new List<Author>();
 
-    public virtual ICollection<Doc_Keyword> Doc_Keywords { get; set; } = new List<Doc_Keyword>();
+    public virtual ICollection<Keyword> Keywords { get; set; } = new List<Keyword>();
+
+    public ICollection<DocumentFile> Files { get; set; } = new List<DocumentFile>();
+
 }

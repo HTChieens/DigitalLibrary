@@ -5,13 +5,13 @@ namespace DigitalLibrary.Models;
 
 public partial class Community
 {
-    public Guid ID { get; set; }
+    public Guid Id { get; set; }
 
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
 
-    public Guid? ParentCommunityID { get; set; }
+    public Guid? ParentCommunityId { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

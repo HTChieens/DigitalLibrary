@@ -90,7 +90,7 @@ namespace DigitalLibrary.Controllers
                         i.Value,
                         Document = new
                         {
-                            i.Document.ID,
+                            i.Document.DocumentId,
                             i.Document.Title
                         }
                     })
@@ -140,7 +140,7 @@ namespace DigitalLibrary.Controllers
                     });
                 }
 
-                var documentExists = await _context.Documents.AnyAsync(d => d.ID == documentId);
+                var documentExists = await _context.Documents.AnyAsync(d => d.DocumentId == documentId);
                 if (!documentExists)
                 {
                     return NotFound(new
@@ -208,7 +208,7 @@ namespace DigitalLibrary.Controllers
                         i.Value,
                         Document = new
                         {
-                            i.Document.ID,
+                            i.Document.DocumentId,
                             i.Document.Title
                         }
                     })
@@ -260,7 +260,7 @@ namespace DigitalLibrary.Controllers
                         i.Value,
                         Document = new
                         {
-                            i.Document.ID,
+                            i.Document.DocumentId,
                             i.Document.Title
                         }
                     })
@@ -331,7 +331,7 @@ namespace DigitalLibrary.Controllers
                 }
 
                 // Kiểm tra Document tồn tại
-                var documentExists = await _context.Documents.AnyAsync(d => d.ID == dto.DocumentID);
+                var documentExists = await _context.Documents.AnyAsync(d => d.DocumentId == dto.DocumentID);
                 if (!documentExists)
                 {
                     return NotFound(new
@@ -379,7 +379,7 @@ namespace DigitalLibrary.Controllers
                         i.Value,
                         Document = new
                         {
-                            i.Document.ID,
+                            i.Document.DocumentId,
                             i.Document.Title
                         }
                     })
@@ -494,7 +494,7 @@ namespace DigitalLibrary.Controllers
                         i.Value,
                         Document = new
                         {
-                            i.Document.ID,
+                            i.Document.DocumentId,
                             i.Document.Title
                         }
                     })
