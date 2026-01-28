@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using DigitalLibrary.Services;
 using DigitalLibrary.DTOs.Roles;
 using System.Runtime.InteropServices;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace DigitalLibrary.Controllers
 {
@@ -49,8 +50,27 @@ namespace DigitalLibrary.Controllers
                 Data = profiles
             });
         }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ApiResponse<RoleProfileDto>>> GetRole(string  id)
+        {
+            var role= await _roleRepo.Find(id);
+            if (role == null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Lấy role lỗi",
+                });
+            }
+            return Ok(new ApiResponse<RoleProfileDto>
+            {
+                Success = true,
+                Message = "Lấy role thành công",
+                Data = new RoleProfileDto { Name = role.Name }
+            });
+        }
 
- 
+
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResponse<RoleDto>>> Update(string id, RoleDto dto)
         {

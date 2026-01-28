@@ -55,5 +55,5 @@ public partial class Document
 
     public virtual ICollection<Author> Authors { get; set; } = new List<Author>();
 
-    public virtual ICollection<Keyword> Keywords { get; set; } = new List<Keyword>();
+    public virtual ICollection<Doc_Keyword> Doc_Keywords { get; set; } = new List<Doc_Keyword>();
 }

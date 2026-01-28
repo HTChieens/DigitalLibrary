@@ -2,12 +2,12 @@ using DigitalLibrary.Data;
 using DigitalLibrary.Repositories;
 using DigitalLibrary.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Runtime;
+using System.Reflection;
 using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +16,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:4200")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 builder.Services.AddSwaggerGen(option =>
 {
     option.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -40,9 +51,11 @@ builder.Services.AddSwaggerGen(option =>
             new string[]{}
         }
     });
-
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    option.IncludeXmlComments(xmlPath);
 });
-//connection string
+
 builder.Services.AddDbContext<DigitalLibraryContext>(option =>
     option.UseSqlServer(
         builder.Configuration.GetConnectionString("chien")
@@ -102,6 +115,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors("AllowAngular");
 
 app.UseHttpsRedirection();
 

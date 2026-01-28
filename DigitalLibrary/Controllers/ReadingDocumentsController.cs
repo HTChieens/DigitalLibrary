@@ -45,7 +45,7 @@ namespace DigitalLibrary.Controllers
                         Message = "Thêm mới lượt đọc",
                     });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return NotFound( new ApiResponse<object>
                     {
