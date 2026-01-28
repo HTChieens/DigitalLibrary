@@ -5,7 +5,7 @@ namespace DigitalLibrary.Models;
 
 public partial class Author
 {
-    public string ID { get; set; } = null!;
+    public string Id { get; set; } = null!;
 
     public string Name { get; set; } = null!;
 
@@ -19,7 +19,7 @@ public partial class Author
 
     public string? Orcid { get; set; }
 
-    public virtual User_Author? User_Author { get; set; }
+    public virtual UserAuthor? UserAuthor { get; set; }
 
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
 }

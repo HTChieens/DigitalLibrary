@@ -5,7 +5,7 @@ namespace DigitalLibrary.Models;
 
 public partial class Document
 {
-    public string DocumentId { get; set; } = null!;
+    public string Id { get; set; } = null!;
 
     public string Title { get; set; } = null!;
 
@@ -27,7 +27,7 @@ public partial class Document
 
     public virtual ICollection<CollectionDocument> CollectionDocuments { get; set; } = new List<CollectionDocument>();
 
-    public virtual ICollection<Document_License> Document_Licenses { get; set; } = new List<Document_License>();
+    public virtual ICollection<DocumentLicense> DocumentLicenses { get; set; } = new List<DocumentLicense>();
 
     public virtual ICollection<Download> Downloads { get; set; } = new List<Download>();
 

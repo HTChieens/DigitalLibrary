@@ -1,4 +1,5 @@
 ﻿using DigitalLibrary.Data;
+using DigitalLibrary.DTOs.Documents;
 using DigitalLibrary.DTOs.Librarians;
 using DigitalLibrary.DTOs.Submissions;
 using DigitalLibrary.Models;
@@ -23,8 +24,8 @@ namespace DigitalLibrary.Services.Submissions
 
         public async Task<Guid> CreateAsync(CreateSubmissionDto dto, string submitterId)
         {
-            var user = _context.Users.Where(u => u.ID == submitterId).FirstOrDefault();
-            var role = _context.Roles.Where(r => r.ID == user!.RoleID).FirstOrDefault();
+            var user = _context.Users.Where(u => u.Id == submitterId).FirstOrDefault();
+            var role = _context.Roles.Where(r => r.Id == user!.RoleId).FirstOrDefault();
             bool isLibrarian = "Librarian" == role!.Name;
 
             var submission = new Submission
@@ -50,7 +51,7 @@ namespace DigitalLibrary.Services.Submissions
 
             if (!isLibrarian)
             {
-                var emails = _context.Users.Where(u => u.RoleID == "3").Select(u => u.Email);
+                var emails = _context.Users.Where(u => u.RoleId == "3").Select(u => u.Email);
                 foreach (string email in emails)
                 {
                     await _emailService.SendAsync(
@@ -59,7 +60,7 @@ namespace DigitalLibrary.Services.Submissions
                         $@"
                         <p>Xin chào <b> thủ thư</b>,</p>
                         <p>
-                            User có ID {user!.ID} đã tải lên tài liệu: <b>{submission.Document.Title}</b> với Submission ID là: {submission.Id}
+                            User có ID {user!.Id} đã tải lên tài liệu: <b>{submission.Document.Title}</b> với Submission ID là: {submission.Id}
                         </p>
                         <p>
                             Vui lòng vào website thư viện để phân Reviewer cho tài liệu này!
@@ -102,19 +103,30 @@ namespace DigitalLibrary.Services.Submissions
             if (submission!.Status == "Accept" || submission.Status == "Reject")
                 throw new Exception("Submission is not in reviewable state");
 
-            if (_context.SubmissionHistories.Any(sh => sh.PerformedBy == reviewerId && (sh.Comment == "OK" || sh.Comment == "Không đạt")))
+            if (_context.SubmissionHistories.Any(sh => sh.SubmissionId == submissionId && sh.PerformedBy == reviewerId && (sh.Comment == "OK" || sh.Comment == "Không đạt")))
             {
                 throw new Exception("You have already reviewed the submission");
             }
 
 
-            var last_review = _context.SubmissionHistories
-                .Where(sh => sh.SubmissionId == submissionId)
+            var lastReviewByReviewer = _context.SubmissionHistories
+                .Where(sh => sh.SubmissionId == submissionId
+                             && sh.PerformedBy == reviewerId
+                             && sh.Action == "Review")
                 .OrderByDescending(sh => sh.CreatedAt)
-                .First();
-            if (last_review.PerformedBy == reviewerId)
+                .FirstOrDefault();
+
+            if (lastReviewByReviewer != null)
             {
-                throw new Exception("Author hasn’t had time to reconsider document yet");
+                bool hasAuthorUpdate = _context.SubmissionHistories
+                    .Any(sh => sh.SubmissionId == submissionId
+                               && sh.Action == "Revise"
+                               && sh.CreatedAt > lastReviewByReviewer.CreatedAt);
+
+                if (!hasAuthorUpdate)
+                {
+                    throw new Exception("Author hasn’t revised the document since your last review.");
+                }
             }
 
             return _context.DocumentFiles
@@ -140,9 +152,15 @@ namespace DigitalLibrary.Services.Submissions
                 "Review",
                 dto.Comment);
 
-            var total = _context.SubmissionHistories.Where(sh => sh.SubmissionId == submission.Id && sh.Action == "AssignReviewer").Count();
-            var count = _context.SubmissionHistories.Where(sh => sh.SubmissionId == submission.Id && sh.Comment == "OK" || sh.Comment == "Không đạt").Count();
-            var emails = _context.Users.Where(u => u.RoleID == "4").Select(u => u.Email);
+            var validComments = new[] { "OK", "Không đạt" };
+            var count = _context.SubmissionHistories
+                .Where(sh => sh.SubmissionId == submission.Id
+                             && validComments.Contains(sh.Comment))
+                .Count();
+            var total = _context.SubmissionHistories
+                .Where(sh => sh.SubmissionId == submission.Id && sh.Action == "AssignReviewer")
+                .Count();
+            var emails = _context.Users.Where(u => u.RoleId == "4").Select(u => u.Email);
             if (count == total)
             {
                 foreach (string email in emails)
@@ -200,7 +218,22 @@ namespace DigitalLibrary.Services.Submissions
 
             await _context.SaveChangesAsync();
 
-            await _historyService.AddAsync(submission.Id, librarianId, "Accept", "Submitted by librarian");
+            await _historyService.AddAsync(submission.Id, librarianId, "Accept", "By librarian");
+
+            var submitter = _context.Users.Where(u => u.Id == submission.SubmitterId).FirstOrDefault();
+            await _emailService.SendAsync(
+                submitter!.Email,
+                "Ket qua Review tai lieu tai len",
+                $@"
+                <p>Xin chào <b> {submitter.Name}</b>,</p>
+                <p>
+                    Tai lieu cua ban: <b>{submission.Document.Title}</b> với Submission ID là: {submission.Id} da duoc chap nhan dang tren thu vien.
+                </p>
+                <p>
+                    Cam on ban vi da dong gop cho thu vien.
+                </p>
+                "
+            );
 
             await tx.CommitAsync();
         }
@@ -236,7 +269,7 @@ namespace DigitalLibrary.Services.Submissions
             if (submission.Status == "Accept" || submission.Status == "Reject")
                 throw new Exception("Submission is not in review state");
 
-            var reviewer = await _context.Users.FirstOrDefaultAsync(u => u.ID == reviewerId);
+            var reviewer = await _context.Users.FirstOrDefaultAsync(u => u.Id == reviewerId);
             if (reviewerId == null)
             {
                 throw new Exception("User not found");
@@ -278,7 +311,7 @@ namespace DigitalLibrary.Services.Submissions
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Guid submissionId, Guid collectionId, string userId)
+        public async Task UpdateAsync(Guid submissionId, UpdateDocumentDto dto, string userId)
         {
             using var tx = await _context.Database.BeginTransactionAsync();
 
@@ -288,17 +321,14 @@ namespace DigitalLibrary.Services.Submissions
             if (submission == null)
                 throw new Exception("Submission not found");
 
-            if (submission.Status == "Accept" || submission.Status == "Reject")
-                throw new Exception("This submission cannot change collection");
-
-            submission.CollectionId = collectionId;
+            submission.CollectionId = dto.CollectionId;
             submission.UpdatedAt = DateTime.UtcNow;
 
             await _historyService.AddAsync(
                 submissionId,
                 userId,
-                "Update",
-                "Change collection");
+                "Revise",
+                dto.Comment);
 
             await _context.SaveChangesAsync();
             await tx.CommitAsync();

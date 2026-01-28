@@ -5,7 +5,7 @@ namespace DigitalLibrary.Models;
 
 public partial class ExternalBook
 {
-    public string DocumentID { get; set; } = null!;
+    public string DocumentId { get; set; } = null!;
 
     public string Publisher { get; set; } = null!;
 

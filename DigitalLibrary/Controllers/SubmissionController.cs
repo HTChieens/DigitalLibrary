@@ -1,4 +1,5 @@
-﻿using DigitalLibrary.DTOs.Librarians;
+﻿using DigitalLibrary.DTOs.Documents;
+using DigitalLibrary.DTOs.Librarians;
 using DigitalLibrary.DTOs.Submissions;
 using DigitalLibrary.Services.Submissions;
 using Microsoft.AspNetCore.Http;
@@ -32,7 +33,7 @@ namespace DigitalLibrary.Controllers
         {
             var librarianId = User.Identity!.Name!;
 
-            await _submissionService.AssignReviewerAsync(submissionId, reviewerId, "4");
+            await _submissionService.AssignReviewerAsync(submissionId, reviewerId, librarianId);
 
             return Ok();
         }
@@ -40,7 +41,8 @@ namespace DigitalLibrary.Controllers
         [HttpPost("review")]
         public async Task<IActionResult> Review(ReviewSubmissionDto dto)
         {
-            await _submissionService.ReviewAsync(dto, "6");
+            var userId = User.Identity!.Name!;
+            await _submissionService.ReviewAsync(dto, userId);
             return Ok();
         }
 
@@ -66,11 +68,11 @@ namespace DigitalLibrary.Controllers
         }
 
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateCollection(Guid submissionId, Guid collectionId)
+        public async Task<IActionResult> UpdateCollection(Guid submissionId, UpdateDocumentDto dto)
         {
             var userId = User.Identity!.Name!;
 
-            await _submissionService.UpdateAsync(submissionId, collectionId, "4");
+            await _submissionService.UpdateAsync(submissionId, dto, "4");
 
             return Ok();
         }

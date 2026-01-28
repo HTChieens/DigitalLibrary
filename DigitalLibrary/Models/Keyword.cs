@@ -5,7 +5,7 @@ namespace DigitalLibrary.Models;
 
 public partial class Keyword
 {
-    public string ID { get; set; } = null!;
+    public string Id { get; set; } = null!;
 
     public string Name { get; set; } = null!;
 

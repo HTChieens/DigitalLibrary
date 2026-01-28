@@ -24,10 +24,10 @@ namespace DigitalLibrary.Services.Documents
         {
             return await _context.Documents
                 .Where(d => !d.IsDeleted)
-                .Where(d => _context.Submissions.Any(s => s.DocumentId == d.DocumentId && s.Status.Equals("Approved")))
+                .Where(d => _context.Submissions.Any(s => s.DocumentId == d.Id && s.Status.Equals("Accept")))
                 .Select(d => new DocumentListDto
                 {
-                    Id = d.DocumentId,
+                    Id = d.Id,
                     Title = d.Title,
                     DocumentType = d.DocumentType,
                     PublicationDate = d.PublicationDate,
@@ -39,10 +39,10 @@ namespace DigitalLibrary.Services.Documents
         public async Task<DocumentDetailDto?> GetByIdAsync(string Id)
         {
             var doc = await _context.Documents
-                .Where(d => d.DocumentId == Id && !d.IsDeleted && d.Submissions.Any(s => s.Status == "Approved"))
+                .Where(d => d.Id == Id && !d.IsDeleted && d.Submissions.Any(s => s.Status == "Approved"))
                 .Select(d => new DocumentDetailDto
                 {
-                    Id = d.DocumentId,
+                    Id = d.Id,
                     Title = d.Title,
                     Description = d.Description,
                     DocumentType = d.DocumentType,
@@ -51,7 +51,7 @@ namespace DigitalLibrary.Services.Documents
                     Authors = d.Authors.Select(a => a.Name).ToList(),
                     Keywords = d.Keywords.Select(k => k.Name).ToList(),
                     Identifiers = _context.Identifiers
-                        .Where(i => i.DocumentID == d.DocumentId)
+                        .Where(i => i.DocumentId == d.Id)
                         .Select(i => i.Type + ": " + i.Value)
                         .ToList(),
                     InternalBook = d.InternalBook == null ? null : new InternalBookDto
@@ -87,7 +87,7 @@ namespace DigitalLibrary.Services.Documents
                         PublicationType = d.ResearchPublication.PublicationType
                     },
 
-                    Licenses = d.Document_Licenses.Select(dl => new LicenseDto
+                    Licenses = d.DocumentLicenses.Select(dl => new LicenseDto
                     {
                         Name = dl.License.Name,
                         Content = dl.License.Content,
@@ -112,7 +112,7 @@ namespace DigitalLibrary.Services.Documents
                 )
                 .Select(d => new DocumentListDto
                 {
-                    Id = d.DocumentId,
+                    Id = d.Id,
                     Title = d.Title,
                     DocumentType = d.DocumentType,
                     PublicationDate = d.PublicationDate,
@@ -129,7 +129,7 @@ namespace DigitalLibrary.Services.Documents
                 case "InternalBook":
                     _context.InternalBooks.Add(new InternalBook
                     {
-                        DocumentID = documentId,
+                        DocumentId = documentId,
                         Faculty = dto.InternalBook!.Faculty,
                         DocumentType = dto.InternalBook.DocumentType,
                         Version = dto.InternalBook.Version
@@ -139,7 +139,7 @@ namespace DigitalLibrary.Services.Documents
                 case "ExternalBook":
                     _context.ExternalBooks.Add(new ExternalBook
                     {
-                        DocumentID = documentId,
+                        DocumentId = documentId,
                         Publisher = dto.ExternalBook!.Publisher,
                         Version = dto.ExternalBook.Version
                     });
@@ -148,7 +148,7 @@ namespace DigitalLibrary.Services.Documents
                 case "Thesis":
                     _context.Theses.Add(new Thesis
                     {
-                        DocumentID = documentId,
+                        DocumentId = documentId,
                         DegreeLevel = dto.Thesis!.DegreeLevel,
                         Discipline = dto.Thesis.Discipline,
                         AdvisorName = dto.Thesis.AdvisorName,
@@ -159,7 +159,7 @@ namespace DigitalLibrary.Services.Documents
                 case "Research":
                     _context.Researches.Add(new Research
                     {
-                        DocumentID = documentId,
+                        DocumentId = documentId,
                         Abstract = dto.Research!.Abstract,
                         ResearchLevel = dto.Research.ResearchLevel
                     });
@@ -168,7 +168,7 @@ namespace DigitalLibrary.Services.Documents
                 case "ResearchPublication":
                     _context.ResearchPublications.Add(new ResearchPublication
                     {
-                        DocumentID = documentId,
+                        DocumentId = documentId,
                         VenueName = dto.ResearchPublication!.VenueName,
                         PublicationType = dto.ResearchPublication.PublicationType
                     });
@@ -197,7 +197,7 @@ namespace DigitalLibrary.Services.Documents
             {
                 author = new Author
                 {
-                    ID = Guid.NewGuid().ToString("N")[..16],
+                    Id = Guid.NewGuid().ToString("N")[..16],
                     Name = dto.Name,
                     Email = dto.Email,
                     Orcid = dto.Orcid,
@@ -225,7 +225,7 @@ namespace DigitalLibrary.Services.Documents
                 {
                     keyword = new Keyword
                     {
-                        ID = Guid.NewGuid().ToString("N")[..16],
+                        Id = Guid.NewGuid().ToString("N")[..16],
                         Name = key
                     };
                     _context.Keywords.Add(keyword);
@@ -235,39 +235,45 @@ namespace DigitalLibrary.Services.Documents
             }
         }
 
-        private async Task AttachLicensesAsync(string documentId, List<LicenseInputDto> licenses)
+        private async Task AttachLicensesAsync(string documentId, List<Guid> licenseIds, List<LicenseInputDto>? licenses)
         {
-            foreach (var dto in licenses)
+            if (licenseIds.Any())
             {
-                License license;
-
-                if (dto.Id.HasValue)
+                foreach (var id in licenseIds)
                 {
-                    license = await _context.Licenses.FirstOrDefaultAsync(l => l.ID == dto.Id.Value)
+                    var license = await _context.Licenses
+                        .FirstOrDefaultAsync(l => l.Id == id)
                         ?? throw new Exception("License not found");
+
+                    _context.DocumentLicenses.Add(new DocumentLicense
+                    {
+                        DocumentId = documentId,
+                        LicenseId = license.Id,
+                        AcceptedAt = DateTime.UtcNow
+                    });
                 }
-                else
+            }
+
+            if (licenses!.Any())
+            {
+                foreach (var dto in licenses)
                 {
-                    var name = dto.Name.Trim().ToLower();
+                    var license = new License
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = dto.Name,
+                        Content = dto.Content
+                    };
 
-                    license = await _context.Licenses
-                        .FirstOrDefaultAsync(l => l.Name.ToLower() == name)
-                        ?? new License
-                        {
-                            ID = Guid.NewGuid(),
-                            Name = dto.Name
-                        };
+                    _context.Licenses.Add(license);
 
-                    if (_context.Entry(license).State == EntityState.Detached)
-                        _context.Licenses.Add(license);
+                    _context.DocumentLicenses.Add(new DocumentLicense
+                    {
+                        DocumentId = documentId,
+                        LicenseId = license.Id,
+                        AcceptedAt = DateTime.UtcNow
+                    });
                 }
-
-                _context.Document_Licenses.Add(new Document_License
-                {
-                    DocumentID = documentId,
-                    LicenseID = license.ID,
-                    AcceptedAt = DateTime.UtcNow
-                });
             }
         }
 
@@ -278,8 +284,8 @@ namespace DigitalLibrary.Services.Documents
             {
                 _context.Identifiers.Add(new Identifier
                 {
-                    ID = Guid.NewGuid(),
-                    DocumentID = documentId,
+                    Id = Guid.NewGuid(),
+                    DocumentId = documentId,
                     Type = i.Type,
                     Value = i.Value
                 });
@@ -299,7 +305,7 @@ namespace DigitalLibrary.Services.Documents
             {
                 var doc = new Models.Document
                 {
-                    DocumentId = Guid.NewGuid().ToString("N")[..16],
+                    Id = Guid.NewGuid().ToString("N")[..16],
                     Title = dto.Title,
                     Description = dto.Description,
                     DocumentType = dto.DocumentType,
@@ -313,7 +319,7 @@ namespace DigitalLibrary.Services.Documents
 
                 _context.Documents.Add(doc);
 
-                CreateSubTypeAsync(doc.DocumentId, dto);
+                CreateSubTypeAsync(doc.Id, dto);
 
                 foreach (var authorDto in dto.Authors)
                 {
@@ -324,15 +330,15 @@ namespace DigitalLibrary.Services.Documents
 
                 await AttachKeywordsAsync(doc, dto.Keywords);
 
-                await AttachLicensesAsync(doc.DocumentId, dto.Licenses);
+                await AttachLicensesAsync(doc.Id, dto.LicenseIds, dto.Licenses);
 
-                AttachIdentifiers(doc.DocumentId, dto.Identifiers);
+                AttachIdentifiers(doc.Id, dto.Identifiers);
 
                 _context.DocumentFiles.Add(new DocumentFile
                 {
                     Id = Guid.NewGuid(),
-                    DocumentId = doc.DocumentId,
-                    FilePath = dto. FilePath,
+                    DocumentId = doc.Id,
+                    FilePath = dto.FilePath,
                     Version = 1
                 });
 
@@ -340,7 +346,7 @@ namespace DigitalLibrary.Services.Documents
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                return doc.DocumentId;
+                return doc.Id;
             }
             catch
             {
@@ -349,9 +355,11 @@ namespace DigitalLibrary.Services.Documents
             }
         }
 
-        public async Task UploadNewVersionAsync(string documentId, UploadNewFileDto dto, string userId)
+        public async Task UploadNewVersionAsync(UploadNewFileDto dto, string userId)
         {
             using var tx = await _context.Database.BeginTransactionAsync();
+
+            var documentId = _context.Submissions.Where(s => s.Id == dto.SubmissionId).First().DocumentId;
 
             var currentFile = await _context.DocumentFiles
                 .Where(f => f.DocumentId == documentId)
@@ -397,27 +405,27 @@ namespace DigitalLibrary.Services.Documents
             switch (oldType)
             {
                 case "InternalBook":
-                    var ib = await _context.InternalBooks.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                    var ib = await _context.InternalBooks.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                     if (ib != null) _context.InternalBooks.Remove(ib);
                     break;
 
                 case "ExternalBook":
-                    var eb = await _context.ExternalBooks.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                    var eb = await _context.ExternalBooks.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                     if (eb != null) _context.ExternalBooks.Remove(eb);
                     break;
 
                 case "Thesis":
-                    var th = await _context.Theses.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                    var th = await _context.Theses.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                     if (th != null) _context.Theses.Remove(th);
                     break;
 
                 case "Research":
-                    var r = await _context.Researches.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                    var r = await _context.Researches.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                     if (r != null) _context.Researches.Remove(r);
                     break;
 
                 case "ResearchPublication":
-                    var rp = await _context.ResearchPublications.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                    var rp = await _context.ResearchPublications.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                     if (rp != null) _context.ResearchPublications.Remove(rp);
                     break;
             }
@@ -429,10 +437,10 @@ namespace DigitalLibrary.Services.Documents
             {
                 case "InternalBook":
                     {
-                        var entity = await _context.InternalBooks.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                        var entity = await _context.InternalBooks.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                         if (entity == null)
                         {
-                            entity = new InternalBook { DocumentID = documentId };
+                            entity = new InternalBook { DocumentId = documentId };
                             _context.InternalBooks.Add(entity);
                         }
                         entity.Faculty = dto.InternalBook!.Faculty;
@@ -443,10 +451,10 @@ namespace DigitalLibrary.Services.Documents
 
                 case "ExternalBook":
                     {
-                        var entity = await _context.ExternalBooks.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                        var entity = await _context.ExternalBooks.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                         if (entity == null)
                         {
-                            entity = new ExternalBook { DocumentID = documentId };
+                            entity = new ExternalBook { DocumentId = documentId };
                             _context.ExternalBooks.Add(entity);
                         }
                         entity.Publisher = dto.ExternalBook!.Publisher;
@@ -456,10 +464,10 @@ namespace DigitalLibrary.Services.Documents
 
                 case "Thesis":
                     {
-                        var entity = await _context.Theses.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                        var entity = await _context.Theses.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                         if (entity == null)
                         {
-                            entity = new Thesis { DocumentID = documentId };
+                            entity = new Thesis { DocumentId = documentId };
                             _context.Theses.Add(entity);
                         }
                         entity.DegreeLevel = dto.Thesis!.DegreeLevel;
@@ -471,10 +479,10 @@ namespace DigitalLibrary.Services.Documents
 
                 case "Research":
                     {
-                        var entity = await _context.Researches.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                        var entity = await _context.Researches.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                         if (entity == null)
                         {
-                            entity = new Research { DocumentID = documentId };
+                            entity = new Research { DocumentId = documentId };
                             _context.Researches.Add(entity);
                         }
                         entity.Abstract = dto.Research!.Abstract;
@@ -484,10 +492,10 @@ namespace DigitalLibrary.Services.Documents
 
                 case "ResearchPublication":
                     {
-                        var entity = await _context.ResearchPublications.FirstOrDefaultAsync(x => x.DocumentID == documentId);
+                        var entity = await _context.ResearchPublications.FirstOrDefaultAsync(x => x.DocumentId == documentId);
                         if (entity == null)
                         {
-                            entity = new ResearchPublication { DocumentID = documentId };
+                            entity = new ResearchPublication { DocumentId = documentId };
                             _context.ResearchPublications.Add(entity);
                         }
                         entity.VenueName = dto.ResearchPublication!.VenueName;
@@ -546,7 +554,7 @@ namespace DigitalLibrary.Services.Documents
                     {
                         dbAuthor = new Author
                         {
-                            ID = Guid.NewGuid().ToString("N")[..16],
+                            Id = Guid.NewGuid().ToString("N")[..16],
                             Name = dto.Name,
                             Orcid = dto.Orcid,
                             Email = dto.Email,
@@ -595,7 +603,6 @@ namespace DigitalLibrary.Services.Documents
 
             var used = new HashSet<string>();
 
-            // 1️⃣ Add / attach
             foreach (var name in incoming)
             {
                 var key = Normalize(name);
@@ -611,7 +618,7 @@ namespace DigitalLibrary.Services.Documents
                 {
                     dbKeyword = new Keyword
                     {
-                        ID = Guid.NewGuid().ToString("N")[..16],
+                        Id = Guid.NewGuid().ToString("N")[..16],
                         Name = name.Trim()
                     };
                     _context.Keywords.Add(dbKeyword);
@@ -620,7 +627,6 @@ namespace DigitalLibrary.Services.Documents
                 doc.Keywords.Add(dbKeyword);
             }
 
-            // 2️⃣ Remove + delete orphan
             var toRemove = existing
                 .Where(k => !used.Contains(k.Key))
                 .Select(k => k.Value)
@@ -644,7 +650,7 @@ namespace DigitalLibrary.Services.Documents
         private async Task UpdateIdentifiersAsync(string documentId, List<IdentifierDto> incoming)
         {
             var existing = await _context.Identifiers
-                .Where(i => i.DocumentID == documentId)
+                .Where(i => i.DocumentId == documentId)
                 .ToListAsync();
 
             foreach (var dto in incoming)
@@ -660,8 +666,8 @@ namespace DigitalLibrary.Services.Documents
                 {
                     _context.Identifiers.Add(new Identifier
                     {
-                        ID = Guid.NewGuid(),
-                        DocumentID = documentId,
+                        Id = Guid.NewGuid(),
+                        DocumentId = documentId,
                         Type = dto.Type,
                         Value = dto.Value
                     });
@@ -674,65 +680,64 @@ namespace DigitalLibrary.Services.Documents
         private async Task UpdateLicensesAsync(Models.Document doc, List<LicenseInputDto> incoming)
         {
             await _context.Entry(doc)
-                .Collection(d => d.Document_Licenses)
+                .Collection(d => d.DocumentLicenses)
                 .Query()
                 .Include(dl => dl.License)
                 .LoadAsync();
 
-            var existing = doc.Document_Licenses
-                .ToDictionary(dl => dl.LicenseID.ToString());
+            string Normalize(string s) => s.Trim().ToLower();
 
-            var usedKeys = new HashSet<string>();
+            var existing = doc.DocumentLicenses
+                .ToDictionary(dl => Normalize(dl.License.Name));
 
-            // 1️⃣ Add / attach
+            var used = new HashSet<string>();
+
             foreach (var dto in incoming)
             {
-                License license;
+                var key = Normalize(dto.Name!);
+                used.Add(key);
 
-                if (dto.Id.HasValue)
+                if (existing.ContainsKey(key))
+                    continue;
+
+                var license = await _context.Licenses
+                    .FirstOrDefaultAsync(l => l.Name.ToLower() == key);
+
+                if (license == null)
                 {
-                    license = await _context.Licenses
-                        .FirstOrDefaultAsync(l => l.ID == dto.Id.Value)
-                        ?? throw new Exception("License not found");
-
-                    usedKeys.Add(dto.Id.Value.ToString());
-                }
-                else
-                {
-                    var nameKey = dto.Name!.Trim().ToLower();
-                    usedKeys.Add($"NAME:{nameKey}");
-
-                    license = await _context.Licenses
-                        .FirstOrDefaultAsync(l => l.Name.ToLower() == nameKey);
-
-                    if (license == null)
+                    license = new License
                     {
-                        license = new License
-                        {
-                            ID = Guid.NewGuid(),
-                            Name = dto.Name.Trim()
-                        };
-                        _context.Licenses.Add(license);
-                    }
+                        Id = Guid.NewGuid(),
+                        Name = dto.Name.Trim(),
+                        Content = dto.Content
+                    };
+                    _context.Licenses.Add(license);
                 }
 
-                if (!existing.ContainsKey(license.ID.ToString()))
+                doc.DocumentLicenses.Add(new DocumentLicense
                 {
-                    doc.Document_Licenses.Add(new Document_License
-                    {
-                        DocumentID = doc.DocumentId,
-                        LicenseID = license.ID,
-                        AcceptedAt = DateTime.UtcNow
-                    });
-                }
+                    DocumentId = doc.Id,
+                    LicenseId = license.Id,
+                    AcceptedAt = DateTime.UtcNow
+                });
             }
 
-            // 2️⃣ Remove mapping
-            foreach (var dl in existing.Values)
+            var toRemove = existing
+                .Where(k => !used.Contains(k.Key))
+                .Select(k => k.Value)
+                .ToList();
+
+            foreach (var dl in toRemove)
             {
-                if (!usedKeys.Contains(dl.LicenseID.ToString()))
+                doc.DocumentLicenses.Remove(dl);
+
+                await _context.Entry(dl.License)
+                    .Collection(l => l.DocumentLicenses)
+                    .LoadAsync();
+
+                if (!dl.License.DocumentLicenses.Any())
                 {
-                    doc.Document_Licenses.Remove(dl);
+                    _context.Licenses.Remove(dl.License);
                 }
             }
         }
@@ -743,10 +748,15 @@ namespace DigitalLibrary.Services.Documents
             using var tx = await _context.Database.BeginTransactionAsync();
 
             var doc = await _context.Documents
-                .FirstOrDefaultAsync(d => d.DocumentId == documentId);
+                .FirstOrDefaultAsync(d => d.Id == documentId);
 
             if (doc == null)
                 throw new Exception("Document not found");
+
+            var submission = await _context.Submissions
+                .FirstOrDefaultAsync(s => s.Id == submissionId);
+            if (submission!.Status == "Accept" || submission.Status == "Reject")
+                throw new Exception("This submission cannot be changed");
 
             doc.Title = dto.Title;
             doc.Description = dto.Description;

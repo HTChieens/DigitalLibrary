@@ -28,7 +28,7 @@ public partial class DigitalLibraryContext : DbContext
 
     public virtual DbSet<Document> Documents { get; set; }
 
-    public virtual DbSet<Document_License> Document_Licenses { get; set; }
+    public virtual DbSet<DocumentLicense> DocumentLicenses { get; set; }
 
     public virtual DbSet<Download> Downloads { get; set; }
 
@@ -66,7 +66,7 @@ public partial class DigitalLibraryContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    public virtual DbSet<User_Author> User_Authors { get; set; }
+    public virtual DbSet<UserAuthor> UserAuthors { get; set; }
 
     public  virtual DbSet<DocumentFile> DocumentFiles { get; set; }
 
@@ -88,9 +88,9 @@ public partial class DigitalLibraryContext : DbContext
 
         modelBuilder.Entity<Author>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Authors__3214EC27D001F412");
+            entity.HasKey(e => e.Id).HasName("PK__Authors__3214EC27D001F412");
 
-            entity.Property(e => e.ID)
+            entity.Property(e => e.Id)
                 .HasMaxLength(20)
                 .HasColumnName("ID");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -183,13 +183,13 @@ public partial class DigitalLibraryContext : DbContext
 
         modelBuilder.Entity<Document>(entity =>
         {
-            entity.HasKey(e => e.DocumentId).HasName("PK__Document__3214EC27AE0AA1B5");
+            entity.HasKey(e => e.Id).HasName("PK__Document__3214EC27AE0AA1B5");
 
             entity.HasIndex(e => e.PublicationDate, "IX_Documents_PublicationDate");
 
             entity.HasIndex(e => e.Title, "IX_Documents_Title");
 
-            entity.Property(e => e.DocumentId)
+            entity.Property(e => e.Id)
                 .HasMaxLength(20)
                 .HasColumnName("ID");
             entity.Property(e => e.CoverPath).HasMaxLength(255);
@@ -250,99 +250,99 @@ public partial class DigitalLibraryContext : DbContext
                     });
         });
 
-        modelBuilder.Entity<Document_License>(entity =>
+        modelBuilder.Entity<DocumentLicense>(entity =>
         {
-            entity.HasKey(e => new { e.DocumentID, e.LicenseID });
+            entity.HasKey(e => new { e.DocumentId, e.LicenseId });
 
             entity.ToTable("Document_License");
 
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
-            entity.Property(e => e.LicenseID).HasColumnName("LicenseID");
+            entity.Property(e => e.LicenseId).HasColumnName("LicenseID");
             entity.Property(e => e.AcceptedAt).HasDefaultValueSql("(sysdatetime())");
 
-            entity.HasOne(d => d.Document).WithMany(p => p.Document_Licenses)
-                .HasForeignKey(d => d.DocumentID)
+            entity.HasOne(d => d.Document).WithMany(p => p.DocumentLicenses)
+                .HasForeignKey(d => d.DocumentId)
                 .HasConstraintName("FK_DL_Document");
 
-            entity.HasOne(d => d.License).WithMany(p => p.Document_Licenses)
-                .HasForeignKey(d => d.LicenseID)
+            entity.HasOne(d => d.License).WithMany(p => p.DocumentLicenses)
+                .HasForeignKey(d => d.LicenseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_DL_License");
         });
 
         modelBuilder.Entity<Download>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Download__3214EC276D6DD3A0");
+            entity.HasKey(e => e.Id).HasName("PK__Download__3214EC276D6DD3A0");
 
-            entity.HasIndex(e => e.DocumentID, "IX_Downloads_DocumentID");
+            entity.HasIndex(e => e.DocumentId, "IX_Downloads_DocumentID");
 
-            entity.Property(e => e.ID).HasColumnName("ID");
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.DownloadedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.UserID)
+            entity.Property(e => e.UserId)
                 .HasMaxLength(20)
                 .HasColumnName("UserID");
 
             entity.HasOne(d => d.Document).WithMany(p => p.Downloads)
-                .HasForeignKey(d => d.DocumentID)
+                .HasForeignKey(d => d.DocumentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Downloads__Docum__693CA210");
 
             entity.HasOne(d => d.User).WithMany(p => p.Downloads)
-                .HasForeignKey(d => d.UserID)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Downloads__UserI__6A30C649");
         });
 
         modelBuilder.Entity<ExternalBook>(entity =>
         {
-            entity.HasKey(e => e.DocumentID).HasName("PK__External__1ABEEF6FC2585AA9");
+            entity.HasKey(e => e.DocumentId).HasName("PK__External__1ABEEF6FC2585AA9");
 
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.Publisher).HasMaxLength(100);
             entity.Property(e => e.Version).HasDefaultValue(1);
 
             entity.HasOne(d => d.Document).WithOne(p => p.ExternalBook)
-                .HasForeignKey<ExternalBook>(d => d.DocumentID)
+                .HasForeignKey<ExternalBook>(d => d.DocumentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__ExternalB__Docum__6B24EA82");
         });
 
         modelBuilder.Entity<Identifier>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Document__3214EC27F3657B8A");
+            entity.HasKey(e => e.Id).HasName("PK__Document__3214EC27F3657B8A");
 
             entity.ToTable("Identifier");
 
             entity.HasIndex(e => new { e.Type, e.Value }, "UQ_Document_Identifier").IsUnique();
 
-            entity.Property(e => e.ID)
+            entity.Property(e => e.Id)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ID");
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.Type).HasMaxLength(50);
             entity.Property(e => e.Value).HasMaxLength(255);
 
             entity.HasOne(d => d.Document).WithMany(p => p.Identifiers)
-                .HasForeignKey(d => d.DocumentID)
+                .HasForeignKey(d => d.DocumentId)
                 .HasConstraintName("FK_DI_Document");
         });
 
         modelBuilder.Entity<InternalBook>(entity =>
         {
-            entity.HasKey(e => e.DocumentID).HasName("PK__Internal__1ABEEF6F6F93E4C3");
+            entity.HasKey(e => e.DocumentId).HasName("PK__Internal__1ABEEF6F6F93E4C3");
 
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.DocumentType).HasMaxLength(50);
@@ -350,18 +350,18 @@ public partial class DigitalLibraryContext : DbContext
             entity.Property(e => e.Version).HasDefaultValue(1);
 
             entity.HasOne(d => d.Document).WithOne(p => p.InternalBook)
-                .HasForeignKey<InternalBook>(d => d.DocumentID)
+                .HasForeignKey<InternalBook>(d => d.DocumentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__InternalB__Docum__6C190EBB");
         });
 
         modelBuilder.Entity<Keyword>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Keywords__3214EC27B6B55425");
+            entity.HasKey(e => e.Id).HasName("PK__Keywords__3214EC27B6B55425");
 
             entity.HasIndex(e => e.Name, "UQ__Keywords__737584F68E1F2F46").IsUnique();
 
-            entity.Property(e => e.ID)
+            entity.Property(e => e.Id)
                 .HasMaxLength(20)
                 .HasColumnName("ID");
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -369,9 +369,9 @@ public partial class DigitalLibraryContext : DbContext
 
         modelBuilder.Entity<License>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Licenses__3214EC27E3B7B822");
+            entity.HasKey(e => e.Id).HasName("PK__Licenses__3214EC27E3B7B822");
 
-            entity.Property(e => e.ID)
+            entity.Property(e => e.Id)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ID");
             entity.Property(e => e.Name).HasMaxLength(255);
@@ -379,9 +379,9 @@ public partial class DigitalLibraryContext : DbContext
 
         modelBuilder.Entity<Permission>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Permissi__3214EC2705B134F8");
+            entity.HasKey(e => e.Id).HasName("PK__Permissi__3214EC2705B134F8");
 
-            entity.Property(e => e.ID)
+            entity.Property(e => e.Id)
                 .HasMaxLength(20)
                 .HasColumnName("ID");
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -389,12 +389,12 @@ public partial class DigitalLibraryContext : DbContext
 
         modelBuilder.Entity<ReadingDocument>(entity =>
         {
-            entity.HasKey(e => new { e.UserID, e.DocumentID, e.FirstReadAt });
+            entity.HasKey(e => new { e.UserId, e.DocumentId, e.FirstReadAt });
 
-            entity.Property(e => e.UserID)
+            entity.Property(e => e.UserId)
                 .HasMaxLength(20)
                 .HasColumnName("UserID");
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.FirstReadAt).HasColumnType("datetime");
@@ -404,12 +404,12 @@ public partial class DigitalLibraryContext : DbContext
                 .HasColumnType("datetime");
 
             entity.HasOne(d => d.Document).WithMany(p => p.ReadingDocuments)
-                .HasForeignKey(d => d.DocumentID)
+                .HasForeignKey(d => d.DocumentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__ReadingDo__Docum__6D0D32F4");
 
             entity.HasOne(d => d.User).WithMany(p => p.ReadingDocuments)
-                .HasForeignKey(d => d.UserID)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__ReadingDo__UserI__6E01572D");
         });
@@ -432,9 +432,9 @@ public partial class DigitalLibraryContext : DbContext
 
         modelBuilder.Entity<Research>(entity =>
         {
-            entity.HasKey(e => e.DocumentID).HasName("PK__Research__1ABEEF6F50E47717");
+            entity.HasKey(e => e.DocumentId).HasName("PK__Research__1ABEEF6F50E47717");
 
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.Abstract).HasMaxLength(1000);
@@ -444,62 +444,62 @@ public partial class DigitalLibraryContext : DbContext
                 .HasDefaultValue("FACULTY");
 
             entity.HasOne(d => d.Document).WithOne(p => p.Research)
-                .HasForeignKey<Research>(d => d.DocumentID)
+                .HasForeignKey<Research>(d => d.DocumentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Researche__Docum__6EF57B66");
         });
 
         modelBuilder.Entity<ResearchPublication>(entity =>
         {
-            entity.HasKey(e => e.DocumentID).HasName("PK__Research__1ABEEF6FA8F96871");
+            entity.HasKey(e => e.DocumentId).HasName("PK__Research__1ABEEF6FA8F96871");
 
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.PublicationType).HasMaxLength(50);
             entity.Property(e => e.VenueName).HasMaxLength(150);
 
             entity.HasOne(d => d.Document).WithOne(p => p.ResearchPublication)
-                .HasForeignKey<ResearchPublication>(d => d.DocumentID)
+                .HasForeignKey<ResearchPublication>(d => d.DocumentId)
                 .HasConstraintName("FK__ResearchP__Docum__6FE99F9F");
         });
 
         modelBuilder.Entity<Review>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Reviews__3214EC2742688F98");
+            entity.HasKey(e => e.Id).HasName("PK__Reviews__3214EC2742688F98");
 
-            entity.HasIndex(e => e.DocumentID, "IX_Reviews_DocumentID");
+            entity.HasIndex(e => e.DocumentId, "IX_Reviews_DocumentID");
 
-            entity.HasIndex(e => new { e.UserID, e.DocumentID }, "UQ_Reviews_User_Document").IsUnique();
+            entity.HasIndex(e => new { e.UserId, e.DocumentId }, "UQ_Reviews_User_Document").IsUnique();
 
-            entity.Property(e => e.ID).HasColumnName("ID");
+            entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-            entity.Property(e => e.UserID)
+            entity.Property(e => e.UserId)
                 .HasMaxLength(20)
                 .HasColumnName("UserID");
 
             entity.HasOne(d => d.Document).WithMany(p => p.Reviews)
-                .HasForeignKey(d => d.DocumentID)
+                .HasForeignKey(d => d.DocumentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Reviews_Document");
 
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
-                .HasForeignKey(d => d.UserID)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Reviews_User");
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Roles__3214EC275DD1AF11");
+            entity.HasKey(e => e.Id).HasName("PK__Roles__3214EC275DD1AF11");
 
-            entity.Property(e => e.ID)
+            entity.Property(e => e.Id)
                 .HasMaxLength(20)
                 .HasColumnName("ID");
             entity.Property(e => e.Name).HasMaxLength(50);
@@ -507,12 +507,12 @@ public partial class DigitalLibraryContext : DbContext
 
         modelBuilder.Entity<SavedDocument>(entity =>
         {
-            entity.HasKey(e => new { e.UserID, e.DocumentID }).HasName("PK__SavedDoc__F623225AF33361C1");
+            entity.HasKey(e => new { e.UserId, e.DocumentId }).HasName("PK__SavedDoc__F623225AF33361C1");
 
-            entity.Property(e => e.UserID)
+            entity.Property(e => e.UserId)
                 .HasMaxLength(20)
                 .HasColumnName("UserID");
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.SavedAt)
@@ -520,12 +520,12 @@ public partial class DigitalLibraryContext : DbContext
                 .HasColumnType("datetime");
 
             entity.HasOne(d => d.Document).WithMany(p => p.SavedDocuments)
-                .HasForeignKey(d => d.DocumentID)
+                .HasForeignKey(d => d.DocumentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__SavedDocu__Docum__72C60C4A");
 
             entity.HasOne(d => d.User).WithMany(p => p.SavedDocuments)
-                .HasForeignKey(d => d.UserID)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__SavedDocu__UserI__73BA3083");
         });
@@ -590,9 +590,9 @@ public partial class DigitalLibraryContext : DbContext
 
         modelBuilder.Entity<Thesis>(entity =>
         {
-            entity.HasKey(e => e.DocumentID).HasName("PK__Theses__1ABEEF6F0E5CB687");
+            entity.HasKey(e => e.DocumentId).HasName("PK__Theses__1ABEEF6F0E5CB687");
 
-            entity.Property(e => e.DocumentID)
+            entity.Property(e => e.DocumentId)
                 .HasMaxLength(20)
                 .HasColumnName("DocumentID");
             entity.Property(e => e.Abstract).HasMaxLength(1000);
@@ -601,18 +601,18 @@ public partial class DigitalLibraryContext : DbContext
             entity.Property(e => e.Discipline).HasMaxLength(100);
 
             entity.HasOne(d => d.Document).WithOne(p => p.Thesis)
-                .HasForeignKey<Thesis>(d => d.DocumentID)
+                .HasForeignKey<Thesis>(d => d.DocumentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Theses__Document__74AE54BC");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.ID).HasName("PK__Users__3214EC279E419D0A");
+            entity.HasKey(e => e.Id).HasName("PK__Users__3214EC279E419D0A");
 
             entity.HasIndex(e => e.Email, "UQ__Users__A9D1053438417698").IsUnique();
 
-            entity.Property(e => e.ID)
+            entity.Property(e => e.Id)
                 .HasMaxLength(20)
                 .HasColumnName("ID");
             entity.Property(e => e.Class).HasMaxLength(50);
@@ -623,7 +623,7 @@ public partial class DigitalLibraryContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.PhoneNumber).HasMaxLength(15);
-            entity.Property(e => e.RoleID)
+            entity.Property(e => e.RoleId)
                 .HasMaxLength(20)
                 .HasColumnName("RoleID");
             entity.Property(e => e.UpdatedAt)
@@ -631,32 +631,32 @@ public partial class DigitalLibraryContext : DbContext
                 .HasColumnType("datetime");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
-                .HasForeignKey(d => d.RoleID)
+                .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Users__RoleID__75A278F5");
         });
 
-        modelBuilder.Entity<User_Author>(entity =>
+        modelBuilder.Entity<UserAuthor>(entity =>
         {
-            entity.HasKey(e => e.UserID).HasName("PK__User_Aut__1788CCACE4C4842D");
+            entity.HasKey(e => e.UserId).HasName("PK__User_Aut__1788CCACE4C4842D");
 
             entity.ToTable("User_Author");
 
-            entity.HasIndex(e => e.AuthorID, "UQ__User_Aut__70DAFC1528C89FFD").IsUnique();
+            entity.HasIndex(e => e.AuthorId, "UQ__User_Aut__70DAFC1528C89FFD").IsUnique();
 
-            entity.Property(e => e.UserID)
+            entity.Property(e => e.UserId)
                 .HasMaxLength(20)
                 .HasColumnName("UserID");
-            entity.Property(e => e.AuthorID)
+            entity.Property(e => e.AuthorId)
                 .HasMaxLength(20)
                 .HasColumnName("AuthorID");
 
-            entity.HasOne(d => d.Author).WithOne(p => p.User_Author)
-                .HasForeignKey<User_Author>(d => d.AuthorID)
+            entity.HasOne(d => d.Author).WithOne(p => p.UserAuthor)
+                .HasForeignKey<UserAuthor>(d => d.AuthorId)
                 .HasConstraintName("FK_UA_Author");
 
-            entity.HasOne(d => d.User).WithOne(p => p.User_Author)
-                .HasForeignKey<User_Author>(d => d.UserID)
+            entity.HasOne(d => d.User).WithOne(p => p.UserAuthor)
+                .HasForeignKey<UserAuthor>(d => d.UserId)
                 .HasConstraintName("FK_UA_User");
         });
 

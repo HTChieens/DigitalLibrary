@@ -5,7 +5,7 @@ namespace DigitalLibrary.Models;
 
 public partial class Research
 {
-    public string DocumentID { get; set; } = null!;
+    public string DocumentId { get; set; } = null!;
 
     public string? Abstract { get; set; }
 

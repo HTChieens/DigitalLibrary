@@ -5,9 +5,9 @@ namespace DigitalLibrary.Models;
 
 public partial class ReadingDocument
 {
-    public string UserID { get; set; } = null!;
+    public string UserId { get; set; } = null!;
 
-    public string DocumentID { get; set; } = null!;
+    public string DocumentId { get; set; } = null!;
 
     public int CurrentPage { get; set; }
 

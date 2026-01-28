@@ -25,5 +25,6 @@
 
         public List<LicenseInputDto>? Licenses { get; set; }
 
+        public string Comment { get; set; } = null!;
     }
 }

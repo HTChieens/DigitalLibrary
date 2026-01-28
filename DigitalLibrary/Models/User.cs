@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
 
 namespace DigitalLibrary.Models;
 
 public partial class User
 {
-    [StringLength(36)]
-    public string ID { get; set; } = null!;
+    public string Id { get; set; } = null!;
 
     public string Name { get; set; } = null!;
 
@@ -18,7 +15,7 @@ public partial class User
 
     public string PasswordHash { get; set; } = null!;
 
-    public string RoleID { get; set; } = null!;
+    public string RoleId { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
 
@@ -42,5 +39,5 @@ public partial class User
 
     public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 
-    public virtual User_Author? User_Author { get; set; }
+    public virtual UserAuthor? UserAuthor { get; set; }
 }

@@ -5,11 +5,11 @@ namespace DigitalLibrary.Models;
 
 public partial class Download
 {
-    public long ID { get; set; }
+    public long Id { get; set; }
 
-    public string UserID { get; set; } = null!;
+    public string UserId { get; set; } = null!;
 
-    public string DocumentID { get; set; } = null!;
+    public string DocumentId { get; set; } = null!;
 
     public DateTime DownloadedAt { get; set; }
 

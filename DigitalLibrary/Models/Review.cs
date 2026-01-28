@@ -5,11 +5,11 @@ namespace DigitalLibrary.Models;
 
 public partial class Review
 {
-    public long ID { get; set; }
+    public long Id { get; set; }
 
-    public string DocumentID { get; set; } = null!;
+    public string DocumentId { get; set; } = null!;
 
-    public string UserID { get; set; } = null!;
+    public string UserId { get; set; } = null!;
 
     public byte? Rating { get; set; }
 

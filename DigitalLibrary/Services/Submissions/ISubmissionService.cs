@@ -12,7 +12,7 @@ namespace DigitalLibrary.Services.Submissions
         Task<string> PrereviewAsync(Guid submissionId, string reviewerId);
         Task FinalReviewAsync(Guid submissionId, string librarianId);
         Task AssignReviewerAsync(Guid submissionId, string lecturerId, string librarianId);
-        Task UpdateAsync(Guid submissionId, Guid collectionId, string userId);
+        Task UpdateAsync(Guid submissionId, UpdateDocumentDto dto, string userId);
         Task AddDoctoCollectionAsync(AddDotoCollectionDto dto);
     }
 }

@@ -5,9 +5,9 @@ namespace DigitalLibrary.Models;
 
 public partial class Identifier
 {
-    public Guid ID { get; set; }
+    public Guid Id { get; set; }
 
-    public string DocumentID { get; set; } = null!;
+    public string DocumentId { get; set; } = null!;
 
     public string Type { get; set; } = null!;
 

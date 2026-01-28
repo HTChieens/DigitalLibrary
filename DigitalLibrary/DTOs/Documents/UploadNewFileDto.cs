@@ -2,8 +2,8 @@
 {
     public class UploadNewFileDto
     {
+        public Guid SubmissionId { get; set; }
         public string FilePath { get; set; } = null!;
         public string? ChangeNote { get; set; }
-        public Guid SubmissionId { get; set; }
     }
 }
