@@ -1,10 +1,8 @@
 ﻿using DigitalLibrary.Data;
-using DigitalLibrary.DTOs.Authors;
 using DigitalLibrary.DTOs.Documents;
 using DigitalLibrary.DTOs.Licenses;
 using DigitalLibrary.Models;
 using DigitalLibrary.Services.SubmissionHistories;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -20,34 +18,6 @@ namespace DigitalLibrary.Services.Documents
         {
             _context = context;
             _historyService = historyService;
-        }
-
-        public async Task<List<DocumentFile>> GetFilesById(string Id)
-        {
-            return await _context.DocumentFiles
-                .Where(d => d.DocumentId == Id)
-                .OrderByDescending(d => d.Version).ToListAsync();
-        }
-
-        public async Task<List<ReviewDto>> GetReviews(string id)
-        {
-            var reviews = await _context.Reviews
-                .Where(r => r.DocumentID == id)
-                .OrderByDescending(r => r.CreatedAt) // Bình luận mới nhất lên đầu
-                .Select(r => new ReviewDto
-                {
-                    Id = r.ID.ToString(),
-                    DocumentId = r.DocumentID,
-                    UserId = r.UserID,
-                    // Lấy tên từ bảng Users thông qua liên kết
-                    UserName = _context.Users.Where(u => u.ID == r.UserID).FirstOrDefault().Name,
-                    Rating = r.Rating,
-                    Content = r.Content,
-                    CreatedAt = r.CreatedAt
-                })
-                .ToListAsync();
-
-            return reviews;
         }
 
         public async Task<List<DocumentListDto>> GetAllAsync()
@@ -78,36 +48,12 @@ namespace DigitalLibrary.Services.Documents
                     DocumentType = d.DocumentType,
                     PageNum = d.PageNum,
                     PublicationDate = d.PublicationDate,
-                    CoverPath = d.CoverPath,
-
-                    // --- TÍNH TOÁN THỐNG KÊ TRỰC TIẾP TRÊN DATABASE ---
-                    TotalReviews = d.Reviews.Count(),
-                    // Tính trung bình cộng Rating, nếu không có ai đánh giá thì mặc định 0
-                    AvgRating = d.Reviews.Any() ? Math.Round(d.Reviews.Average(r => (double)(r.Rating ?? 0)), 1) : 0,
-
-                    // Đếm từ các bảng liên quan
-                    TotalDownloads = _context.Downloads.Count(dl => dl.DocumentID == d.DocumentId),
-                    TotalViews = _context.ReadingDocuments.Count(rd => rd.DocumentID == d.DocumentId),
-
-                    // --- LẤY DANH SÁCH TÁC GIẢ VÀ ĐỊNH DANH ---
-                    Authors = d.Authors.Select(a => new AuthorDto
-                    {
-                        Name = a.Name,
-                        Email = a.Email,
-                        Expertise = a.Expertise,
-                    }).ToList(),
-
+                    Authors = d.Authors.Select(a => a.Name).ToList(),
                     Keywords = d.Keywords.Select(k => k.Name).ToList(),
-
                     Identifiers = _context.Identifiers
                         .Where(i => i.DocumentID == d.DocumentId)
-                        .Select(i => new IdentifierDto
-                        {
-                            Type = i.Type,
-                            Value = i.Value
-                        }).ToList(),
-
-                    // --- CÁC KHỐI THÔNG TIN CHI TIẾT THEO LOẠI ---
+                        .Select(i => i.Type + ": " + i.Value)
+                        .ToList(),
                     InternalBook = d.InternalBook == null ? null : new InternalBookDto
                     {
                         Faculty = d.InternalBook.Faculty,
@@ -157,7 +103,7 @@ namespace DigitalLibrary.Services.Documents
         {
             keyword = keyword.ToLower().Trim();
 
-            var list = await _context.Documents
+            var list =  await _context.Documents
                 .Where(d => !d.IsDeleted && d.Submissions.Any(s => s.Status == "Approved") &&
                     (
                         d.Title.ToLower().Trim().Contains(keyword) ||
@@ -342,11 +288,11 @@ namespace DigitalLibrary.Services.Documents
 
         public async Task<string> CreateAsync(CreateDocumentDto dto)
         {
-            if (_context.Identifiers.Any(i => i.Value.Trim().ToLower() == dto.Identifiers.First().Value.Trim().ToLower()))
+            if(_context.Identifiers.Any(i => i.Value.Trim().ToLower() == dto.Identifiers.First().Value.Trim().ToLower()))
             {
                 throw new Exception("The document has already exsited!");
             }
-
+            
             using var tx = await _context.Database.BeginTransactionAsync();
 
             try
@@ -386,7 +332,7 @@ namespace DigitalLibrary.Services.Documents
                 {
                     Id = Guid.NewGuid(),
                     DocumentId = doc.DocumentId,
-                    FilePath = dto.FilePath,
+                    FilePath = dto. FilePath,
                     Version = 1
                 });
 
@@ -826,61 +772,5 @@ namespace DigitalLibrary.Services.Documents
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
         }
-
-        public async Task<List<DocumentList2Dto>> GetByViewsAsync()
-        {
-            var result = await _context.ReadingDocuments
-                .Where(r => r.IsCounted)
-                .Where(d => _context.Submissions.Any(s => s.DocumentId == d.DocumentID && s.Status.Equals("Approved")))
-                .GroupBy(r => r.Document)
-                .Select(g => new
-                {
-                    Document = g.Key,
-                    ViewCount = g.Count()
-                })
-                .OrderByDescending(x => x.ViewCount)
-                .Select(x => new DocumentList2Dto
-                {
-                    Id = x.Document.DocumentId,
-                    Title = x.Document.Title,
-                    DocumentType = x.Document.DocumentType,
-                    PublicationDate = x.Document.PublicationDate,
-                    CoverPath = x.Document.CoverPath,
-                    ViewCount = x.ViewCount
-                })
-                .ToListAsync();
-
-            return result;
-        }
-
-
-        public async Task<List<DocumentPopularDto>> GetByDownloadsAsync()
-        {
-            var result = await _context.Downloads
-                .Where(d => !d.Document.IsDeleted)
-                .Where(d => _context.Submissions.Any(s => s.DocumentId == d.DocumentID && s.Status.Equals("Approved")))
-                .GroupBy(d => d.Document)
-                .Select(g => new
-                {
-                    Document = g.Key,
-                    DownloadCount = g.Count()
-                })
-                .Where(x => x.DownloadCount > 0)
-                .OrderByDescending(x => x.DownloadCount)
-                .Select(x => new DocumentPopularDto
-                {
-                    Id = x.Document.DocumentId,
-                    Title = x.Document.Title,
-                    DocumentType = x.Document.DocumentType,
-                    PublicationDate = x.Document.PublicationDate,
-                    CoverPath = x.Document.CoverPath,
-                    DownloadCount = x.DownloadCount
-                })
-                .ToListAsync();
-
-            return result;
-        }
-
-
     }
 }

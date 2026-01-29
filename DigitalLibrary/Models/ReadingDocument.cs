@@ -15,7 +15,7 @@ public partial class ReadingDocument
 
     public DateTime FirstReadAt { get; set; }
 
-    public bool IsCounted { get; set; }
+    public bool? IsCounted { get; set; }
 
     public virtual Document Document { get; set; } = null!;
 
