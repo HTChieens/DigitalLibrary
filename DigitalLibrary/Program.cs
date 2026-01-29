@@ -67,7 +67,7 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddDbContext<DigitalLibraryContext>(option =>
     option.UseSqlServer(
-        builder.Configuration.GetConnectionString("huy")
+        builder.Configuration.GetConnectionString("DigitalLibrary")
 ));
 builder.Services.AddSingleton<IPasswordHasherService,PasswordHasherService>();
 builder.Services.AddScoped<IAuthenService,AuthenService>();

@@ -19,13 +19,11 @@ namespace DigitalLibrary.Controllers
     [ApiController]
     public class DocumentsController : ControllerBase
     {
-        private readonly DigitalLibraryContext _context;
 	    private readonly IDocumentService _documentService;
         private readonly ISubmissionService _submissionService;
 
         public DocumentsController(DigitalLibraryContext context , IDocumentService documentService, ISubmissionService submissionService)
         {
-            _context = context;
 	_documentService = documentService;
             _submissionService = submissionService;
         }
@@ -71,6 +69,13 @@ namespace DigitalLibrary.Controllers
             return Ok(new { documentId = docId });
         }
 
+        [HttpGet("{id}/files")]
+        public async Task<IActionResult> GetFilesByDocumentId(string id)
+        {
+            var file = await _documentService.GetFilesById(id);
+            return Ok(file);
+        }
+
         [HttpPost("upload-new-file")]
         public async Task<IActionResult> UploadNewFile(string docId, UploadNewFileDto dto)
         {
@@ -91,5 +96,27 @@ namespace DigitalLibrary.Controllers
             await _submissionService.UpdateAsync(submissionId, dto.CollectionId, "6");
             return Ok();
         }
+
+        [HttpGet("popular")]
+        public async Task<IActionResult> GetPopularByDownload()
+        {
+            var data = await _documentService.GetByDownloadsAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("trending")]
+        public async Task<IActionResult> GetTrendingByViews()
+        {
+            var data = await _documentService.GetByViewsAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("{id}/reviews")]
+        public async Task<IActionResult> GetReviews(string id)
+        {
+            var reviews = await _documentService.GetReviews(id);
+            return Ok(reviews);
+        }
+
     }
 }
