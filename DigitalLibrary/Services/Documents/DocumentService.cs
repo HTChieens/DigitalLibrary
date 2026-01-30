@@ -4,10 +4,7 @@ using DigitalLibrary.DTOs.Documents;
 using DigitalLibrary.DTOs.Licenses;
 using DigitalLibrary.Models;
 using DigitalLibrary.Services.SubmissionHistories;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Reflection.Metadata;
 
 namespace DigitalLibrary.Services.Documents
 {
@@ -21,6 +18,50 @@ namespace DigitalLibrary.Services.Documents
             _context = context;
             _historyService = historyService;
         }
+
+        public async Task<List<CommunityTreeDto>> GetCommunities()
+        {
+            var communities = await _context.Communities.ToListAsync();
+            var dict = communities.ToDictionary(
+                c => c.Id,
+                c => new CommunityTreeDto
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                });
+
+            var roots = new List<CommunityTreeDto>();
+
+            foreach (var c in communities)
+            {
+                if (c.ParentCommunityId == null)
+                {
+                    roots.Add(dict[c.Id]);
+                }
+                else if (dict.ContainsKey((Guid)c.ParentCommunityId))
+                {
+                    dict[(Guid)c.ParentCommunityId].Children.Add(dict[c.Id]);
+                }
+            }
+
+            return roots;
+        }
+        public async Task<List<Collection>> GetCollections()
+        {
+            return await _context.Collections.ToListAsync();
+        }
+        public async Task<List<Author>> GetAuthors()
+        {
+            return await _context.Authors
+            .Where(a =>
+            a.Documents.Any(d =>
+            !d.IsDeleted &&
+            d.Submissions.Any(s => s.Status == "Approved")
+            )
+            )
+            .ToListAsync();
+        }
+
 
         public async Task<List<DocumentFile>> GetFilesById(string Id)
         {
@@ -50,21 +91,100 @@ namespace DigitalLibrary.Services.Documents
             return reviews;
         }
 
-        public async Task<List<DocumentListDto>> GetAllAsync()
+        public async Task<object> GetAllAsync(
+string? authorId,
+string? collectionId,
+string? communityId,
+string? type,
+string? keyword,
+string sortBy,
+int page,
+int pageSize)
         {
-            return await _context.Documents
-                .Where(d => !d.IsDeleted)
-                .Where(d => _context.Submissions.Any(s => s.DocumentId == d.DocumentId && s.Status.Equals("Approved")))
+            var query = _context.Documents
+            .Where(d =>
+            !d.IsDeleted &&
+            d.Submissions.Any(s => s.Status == "Approved")
+            )
+            .AsQueryable();
+
+            // -------- FILTERS --------
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                query = query.Where(d =>
+                    d.Title.Contains(keyword) ||
+                    d.Description.Contains(keyword)
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(authorId))
+            {
+                query = query.Where(d =>
+                    d.Authors.Any(a => a.ID == authorId)
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(collectionId))
+            {
+                query = query.Where(d =>
+                    d.CollectionDocuments.Any(cd => cd.CollectionId.ToString() == collectionId)
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(communityId))
+            {
+                query = query.Where(d =>
+                    d.Submissions.Any(s =>
+                        s.Collection.CommunityId.ToString() == communityId
+                    )
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                query = query.Where(d => d.DocumentType == type);
+            }
+
+            // -------- SORTING --------
+            query = sortBy switch
+            {
+                "trending" => query.OrderByDescending(d =>
+                    d.ReadingDocuments.Count(r => r.IsCounted)
+                ),
+                "popular" => query.OrderByDescending(d =>
+                    d.Downloads.Count
+                ),
+                _ => query.OrderByDescending(d => d.CreatedAt)
+            };
+
+            // -------- PAGINATION --------
+            var totalItems = await query.CountAsync();
+
+            var documents = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(d => new DocumentListDto
                 {
                     Id = d.DocumentId,
                     Title = d.Title,
+                    CoverPath = d.CoverPath,
                     DocumentType = d.DocumentType,
-                    PublicationDate = d.PublicationDate,
-                    CoverPath = d.CoverPath
+                    PublicationDate = d.PublicationDate
                 })
                 .ToListAsync();
+
+            return new
+            {
+                Data = documents,
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize)
+            };
         }
+
+
+
 
         public async Task<DocumentDetailDto?> GetByIdAsync(string Id)
         {
@@ -339,6 +459,15 @@ namespace DigitalLibrary.Services.Documents
                 });
             }
         }
+
+        private string GenerateUniqueFileName(string originalFileName)
+        {
+            var extension = Path.GetExtension(originalFileName);
+            var guid = Guid.NewGuid().ToString("N");
+
+            return $"{guid}{extension}";
+        }
+
 
         public async Task<string> CreateAsync(CreateDocumentDto dto)
         {

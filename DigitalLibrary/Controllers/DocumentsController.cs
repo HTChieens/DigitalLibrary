@@ -1,17 +1,9 @@
 ﻿using DigitalLibrary.Data;
-using DigitalLibrary.DTOs;
 using DigitalLibrary.DTOs.Documents;
 using DigitalLibrary.DTOs.Submissions;
-using DigitalLibrary.Models;
 using DigitalLibrary.Services.Documents;
 using DigitalLibrary.Services.Submissions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DigitalLibrary.Controllers
 {
@@ -19,21 +11,41 @@ namespace DigitalLibrary.Controllers
     [ApiController]
     public class DocumentsController : ControllerBase
     {
-	    private readonly IDocumentService _documentService;
+        private readonly IDocumentService _documentService;
         private readonly ISubmissionService _submissionService;
 
-        public DocumentsController(DigitalLibraryContext context , IDocumentService documentService, ISubmissionService submissionService)
+        public DocumentsController(DigitalLibraryContext context, IDocumentService documentService, ISubmissionService submissionService)
         {
-	_documentService = documentService;
+            _documentService = documentService;
             _submissionService = submissionService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+[FromQuery] string? authorId,
+[FromQuery] string? collectionId,
+[FromQuery] string? communityId,
+[FromQuery] string? type,
+[FromQuery] string? keyword,
+[FromQuery] string? sortBy = "newest",
+[FromQuery] int page = 1,
+[FromQuery] int pageSize = 12)
         {
-            var docs = await _documentService.GetAllAsync();
-            return Ok(docs);
+            var result = await _documentService.GetAllAsync(
+            authorId,
+            collectionId,
+            communityId,
+            type,
+            keyword,
+            sortBy,
+            page,
+            pageSize
+            );
+
+            return Ok(result);
         }
+
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDetail(string id)
@@ -116,6 +128,26 @@ namespace DigitalLibrary.Controllers
         {
             var reviews = await _documentService.GetReviews(id);
             return Ok(reviews);
+        }
+
+        [HttpGet("communities")]
+        public async Task<IActionResult> GetCommunities()
+        {
+            return Ok(await _documentService.GetCommunities());
+        }
+
+        // 2. Lấy danh sách Bộ sưu tập
+        [HttpGet("collections")]
+        public async Task<IActionResult> GetCollections()
+        {
+            return Ok(await _documentService.GetCollections());
+        }
+
+        // 3. Lấy danh sách Tác giả
+        [HttpGet("authors")]
+        public async Task<IActionResult> GetAuthors()
+        {
+            return Ok(await _documentService.GetAuthors());
         }
 
     }
