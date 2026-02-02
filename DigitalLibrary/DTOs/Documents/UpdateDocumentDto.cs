@@ -1,0 +1,31 @@
+﻿namespace DigitalLibrary.DTOs.Documents
+{
+    public class UpdateDocumentDto
+    {
+        public string Title { get; set; } = null!;
+        public string Description { get; set; } = null!;
+        public string DocumentType { get; set; } = null!;
+        public DateTime PublicationDate { get; set; }
+        public int PageNum { get; set; }
+        public int IntroEndPage { get; set; }
+
+        public Guid CollectionId { get; set; }
+
+        public IFormFile? CoverFile { get; set; }
+        public IFormFile? File { get; set; }
+        public string? RevisionComment { get; set; }
+
+        public InternalBookDto? InternalBook { get; set; }
+        public ExternalBookDto? ExternalBook { get; set; }
+        public ThesisDto? Thesis { get; set; }
+        public ResearchDto? Research { get; set; }
+        public ResearchPublicationDto? ResearchPublication { get; set; }
+
+        public List<AuthorInputDto> Authors { get; set; } = [];
+        public List<string> Keywords { get; set; } = [];
+        public List<IdentifierDto> Identifiers { get; set; } = [];
+        public List<LicenseInputDto> Licenses { get; set; } = [];
+    }
+
+
+}
