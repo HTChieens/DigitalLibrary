@@ -30,7 +30,7 @@ namespace DigitalLibrary.Controllers
             var profiles = new List<AuthorDto>();
             foreach (var result in results)
             {
-                profiles.Add(new AuthorDto { Name = result.Name,Email = result.Email,Description=result.Description,Expertise = result.Expertise,Image = result.Image,Orcid = result.Orcid});
+                profiles.Add(new AuthorDto { Name = result.Name,Email = result.Email,Description=result.Description,Expertise = result.Expertise,Image = result.Image,OrcId = result.Orcid});
 
             }
             return Ok( new ApiResponse<ICollection<AuthorDto>>
@@ -69,7 +69,7 @@ namespace DigitalLibrary.Controllers
             update.Description = dto.Description;
             update.Image = dto.Image;
             update.Expertise = dto.Expertise;   
-            update.Orcid= dto.Orcid;   
+            update.Orcid= dto.OrcId;   
             await this._repo.Update(update);
             var response = new AuthorDto
             {
@@ -78,7 +78,7 @@ namespace DigitalLibrary.Controllers
                 Description = update.Description,
                 Expertise = update.Expertise,
                 Image = update.Image,
-                Orcid = dto.Orcid,
+                OrcId = dto.OrcId,
 
             };
             return Ok(new ApiResponse<AuthorDto>
@@ -104,7 +104,7 @@ namespace DigitalLibrary.Controllers
                 Description = dto.Description,
                 Expertise = dto.Expertise,
                 Image = dto.Image   ,
-                Orcid= dto.Orcid,
+                Orcid= dto.OrcId,
             };
             await this._repo.Add(author);
             var response = new AuthorDto
@@ -114,7 +114,7 @@ namespace DigitalLibrary.Controllers
                 Expertise = author.Expertise,
                 Image = author.Image,
                 Email = author.Email,
-                Orcid    = author.Orcid,
+                OrcId    = author.Orcid,
             };
             return Ok(new ApiResponse<AuthorDto>
             {
@@ -143,7 +143,7 @@ namespace DigitalLibrary.Controllers
               Expertise = result.Expertise,
               Email = result.Email,
               Image  = result.Image ,
-              Orcid =result.Orcid  ,
+              OrcId =result.Orcid  ,
             };
             try
             {

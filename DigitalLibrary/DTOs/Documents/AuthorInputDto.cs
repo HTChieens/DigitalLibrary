@@ -9,5 +9,6 @@
         public string? Expertise { get; set; }
 
         public string? Orcid { get; set; }
+        public IFormFile? ImageFile { get; set; }
     }
 }

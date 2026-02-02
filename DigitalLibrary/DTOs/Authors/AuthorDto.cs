@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace DigitalLibrary.DTOs.Authors
+﻿namespace DigitalLibrary.DTOs.Authors
 {
     public class AuthorDto
     {
@@ -13,7 +11,8 @@ namespace DigitalLibrary.DTOs.Authors
         public string? Image { get; set; }
 
         public string? Expertise { get; set; }
-        public string? Orcid { get; set; }
+
+        public string? OrcId { get; set; }
     }
 
 }

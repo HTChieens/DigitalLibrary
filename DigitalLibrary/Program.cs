@@ -67,7 +67,8 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddDbContext<DigitalLibraryContext>(option =>
     option.UseSqlServer(
-        builder.Configuration.GetConnectionString("chien")
+
+      builder.Configuration.GetConnectionString("chien")
 ));
 builder.Services.AddSingleton<IPasswordHasherService,PasswordHasherService>();
 builder.Services.AddScoped<IAuthenService,AuthenService>();
@@ -80,6 +81,7 @@ builder.Services.AddScoped<IUserAuthorRepository,UserAuthorRepository>();
 builder.Services.AddScoped<IReadingDocumentRepository,ReadingDocumentsRepository>();
 builder.Services.AddScoped<IUserOtpCodeRepository,UserOtpCodeRepository>();
 builder.Services.AddSingleton<IEmailService,EmailService>();
+
 
 
 var jwtSecret = builder.Configuration["Jwt:Secret"];
@@ -129,6 +131,9 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAngular");
 
 app.UseHttpsRedirection();
+
+
+app.UseStaticFiles();
 
 app.UseAuthorization();
 
