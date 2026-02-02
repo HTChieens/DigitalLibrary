@@ -67,7 +67,7 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddDbContext<DigitalLibraryContext>(option =>
     option.UseSqlServer(
-        builder.Configuration.GetConnectionString("huy")
+        builder.Configuration.GetConnectionString("chien")
 ));
 builder.Services.AddSingleton<IPasswordHasherService,PasswordHasherService>();
 builder.Services.AddScoped<IAuthenService,AuthenService>();
@@ -78,6 +78,8 @@ builder.Services.AddScoped<IPermissionRepository,PermissionRepository>();
 builder.Services.AddScoped<IAuthorRepository,AuthorRepository>();
 builder.Services.AddScoped<IUserAuthorRepository,UserAuthorRepository>();
 builder.Services.AddScoped<IReadingDocumentRepository,ReadingDocumentsRepository>();
+builder.Services.AddScoped<IUserOtpCodeRepository,UserOtpCodeRepository>();
+builder.Services.AddSingleton<IEmailService,EmailService>();
 
 
 var jwtSecret = builder.Configuration["Jwt:Secret"];

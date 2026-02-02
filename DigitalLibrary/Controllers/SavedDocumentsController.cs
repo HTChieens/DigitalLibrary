@@ -1,18 +1,21 @@
 ﻿using DigitalLibrary.Data;
 using DigitalLibrary.DTOs;
 using DigitalLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DigitalLibrary.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SavedDocumentsController : ControllerBase
     {
         private readonly DigitalLibraryContext _context;
@@ -23,9 +26,10 @@ namespace DigitalLibrary.Controllers
         }
 
         // GET: api/SavedDocuments?userId=abc&documentId=xyz&fromDate=2024-01-01&toDate=2024-12-31
+     
         [HttpGet]
         public async Task<ActionResult<object>> GetSavedDocuments(
-            [FromQuery] string? userId,
+            //[FromQuery] string? userId,
             [FromQuery] string? documentId,
             [FromQuery] DateTime? fromDate,
             [FromQuery] DateTime? toDate,
@@ -33,6 +37,7 @@ namespace DigitalLibrary.Controllers
         {
             try
             {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var query = _context.SavedDocuments
                     .Include(sd => sd.User)
                     .Include(sd => sd.Document)
@@ -70,45 +75,31 @@ namespace DigitalLibrary.Controllers
 
                 var savedDocuments = await query
                     .OrderByDescending(sd => sd.SavedAt)
-                    .Select(sd => new
-                    {
-                        sd.UserID,
-                        sd.DocumentID,
-                        sd.SavedAt,
-                        //User = new
-                        //{
-                        //    sd.User.ID,
-                        //    sd.User.Username,
-                        //    sd.User.Email
-                        //},
-                        //Document = new
-                        //{
-                        //    sd.Document.ID,
-                        //    sd.Document.Title,
-                        //    sd.Document.Description,
-                        //    sd.Document.DocumentType,
-                        //    sd.Document.CoverPath,
-                        //    sd.Document.PublicationDate,
-                        //    sd.Document.PageNum,
-                        //    sd.Document.IsDeleted
-                        //}
-                    })
+                      .Select(sd => new
+                      {
+                          documentId = sd.Document.DocumentId,
+                          title = sd.Document.Title,
+                          documentType = sd.Document.DocumentType,
+                          coverPath = sd.Document.CoverPath,
+                          publicationDate = sd.Document.PublicationDate
+                      })
+
                     .ToListAsync();
 
                 return Ok(new
                 {
                     success = true,
                     message = "Lấy danh sách tài liệu đã lưu thành công",
-                    filters = new
-                    {
-                        userId,
-                        documentId,
-                        fromDate,
-                        toDate,
-                        documentType
-                    },
+                    //filters = new
+                    //{
+                    //    userId,
+                    //    documentId,
+                    //    fromDate,
+                    //    toDate,
+                    //    documentType
+                    //},
                     data = savedDocuments,
-                    count = savedDocuments.Count
+                    //count = savedDocuments.Count
                 });
             }
             catch (Exception ex)
@@ -128,7 +119,8 @@ namespace DigitalLibrary.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(dto.UserID))
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId==null)
                 {
                     return BadRequest(new
                     {
@@ -149,7 +141,7 @@ namespace DigitalLibrary.Controllers
                 }
 
                 // Kiểm tra User tồn tại
-                var userExists = await _context.Users.AnyAsync(u => u.ID == dto.UserID);
+                var userExists = await _context.Users.AnyAsync(u => u.ID == userId);
                 if (!userExists)
                 {
                     return NotFound(new
@@ -198,7 +190,7 @@ namespace DigitalLibrary.Controllers
 
                 var savedDocument = new SavedDocument
                 {
-                    UserID = dto.UserID,
+                    UserID = userId,
                     DocumentID = dto.DocumentID,
                     SavedAt = DateTime.UtcNow
                 };

@@ -45,12 +45,6 @@ namespace DigitalLibrary.Repositories
         {
             return await _context.User_Authors.ToListAsync();
         }
-        //not use
-        public async Task<int> GetMaxId()
-        {
-            //to do
-            return int.Parse(await _context.User_Authors.MaxAsync(u => u.UserID));
-        }
 
         public async Task<bool> Update(User_Author entity)
         {

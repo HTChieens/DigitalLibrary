@@ -99,13 +99,16 @@ namespace DigitalLibrary.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResponse<RoleDto>>> Add([FromBody] RoleDto dto)
         {
-            var maxId = await _roleRepo.GetMaxId();
+              string id = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            .Replace("+", "")
+            .Replace("/", "")
+            .Substring(0, 20);
             var role = new Role
             {
-                ID = (maxId + 1).ToString(),
+                ID = id,
                 Name = dto.Name,
             };
-            string id = role.ID;
+ 
             await this._roleRepo.Add(role);
             var response = new RoleDto
             {

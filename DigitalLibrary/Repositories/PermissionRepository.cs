@@ -35,10 +35,7 @@ namespace DigitalLibrary.Repositories
         {
             return await _context.Permissions.ToListAsync();
         }
-        public async Task<int> GetMaxId()
-        {
-            return int.Parse(await _context.Permissions.MaxAsync(u => u.ID));
-        }
+    
         public async Task<bool> Update(Permission entity)
         {
             var result = this._context.Permissions.Update(entity);

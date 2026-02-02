@@ -35,10 +35,6 @@ namespace DigitalLibrary.Repositories
         {
             return await _context.Roles.ToListAsync();
         }
-        public async Task<int> GetMaxId()
-        {
-            return int.Parse(await _context.Roles.MaxAsync(u => u.ID));
-        }
         public async Task<bool> Update(Role entity)
         {
             var result = this._context.Roles.Update(entity);

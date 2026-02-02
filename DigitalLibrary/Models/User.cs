@@ -43,4 +43,5 @@ public partial class User
     public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 
     public virtual User_Author? User_Author { get; set; }
+    public virtual UserOtpCode? UserOtpCode { get; set; }
 }

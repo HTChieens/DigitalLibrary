@@ -79,13 +79,15 @@ namespace DigitalLibrary.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResponse<PermissionDto>>> Add([FromBody] PermissionDto dto)
         {
-            var maxId = await _repo.GetMaxId();
+            string id = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                    .Replace("+", "")
+                    .Replace("/", "")
+                    .Substring(0, 20);
             var role = new Permission
             {
-                ID = (maxId + 1).ToString(),
+                ID = id,
                 Name = dto.Name,
             };
-            string id = role.ID;
             await this._repo.Add(role);
             var response = new PermissionDto
             {

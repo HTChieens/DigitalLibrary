@@ -5,7 +5,9 @@ namespace DigitalLibrary.Services
 {
     public interface IAuthenService
     {
-        //Task<bool> RegisterAsync(RegisterDto registerDTO);
+        
         Task<LoginResponseDto> LoginAsync(LoginDto loginDTO);
+        Task<string> ForgotPassword(SendOtpDto dto);
+
     }
 }

@@ -1,11 +1,12 @@
 ﻿
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using DigitalLibrary.Models;
-using Microsoft.AspNetCore.Authorization;
 using DigitalLibrary.DTOs;
 using DigitalLibrary.DTOs.Authors;
+using DigitalLibrary.DTOs.Documents;
+using DigitalLibrary.Models;
 using DigitalLibrary.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DigitalLibrary.Controllers
 {
@@ -29,7 +30,7 @@ namespace DigitalLibrary.Controllers
             var profiles = new List<AuthorDto>();
             foreach (var result in results)
             {
-                profiles.Add(new AuthorDto { Name = result.Name,Email = result.Email,Description=result.Description,Expertise = result.Expertise,Image = result.Image});
+                profiles.Add(new AuthorDto { Name = result.Name,Email = result.Email,Description=result.Description,Expertise = result.Expertise,Image = result.Image,Orcid = result.Orcid});
 
             }
             return Ok( new ApiResponse<ICollection<AuthorDto>>
@@ -40,10 +41,10 @@ namespace DigitalLibrary.Controllers
             });
         } // GET: api/Users
         [HttpGet("{authorId}/documents")]
-        public async Task<ActionResult<ApiResponse<ICollection<Document>>>> GetDocuments(string authorId)
+        public async Task<ActionResult<ApiResponse<ICollection<DocumentListDto>>>> GetDocuments(string authorId)
         {
             var results = await _repo.GetDocuments(authorId);
-            return Ok(new ApiResponse<ICollection<Document>>
+            return Ok(new ApiResponse<ICollection<DocumentListDto>>
             {
                 Success = true,
                 Message = "Lấy danh sách Document thành công",
@@ -68,6 +69,7 @@ namespace DigitalLibrary.Controllers
             update.Description = dto.Description;
             update.Image = dto.Image;
             update.Expertise = dto.Expertise;   
+            update.Orcid= dto.Orcid;   
             await this._repo.Update(update);
             var response = new AuthorDto
             {
@@ -75,7 +77,9 @@ namespace DigitalLibrary.Controllers
                 Email = update.Email,
                 Description = update.Description,
                 Expertise = update.Expertise,
-                Image = update.Image
+                Image = update.Image,
+                Orcid = dto.Orcid,
+
             };
             return Ok(new ApiResponse<AuthorDto>
             {
@@ -88,15 +92,19 @@ namespace DigitalLibrary.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResponse<AuthorDto>>> Add([FromBody] AuthorDto dto)
         {
-            var maxId = await _repo.GetMaxId();
+            string id = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                      .Replace("+", "")
+                      .Replace("/", "")
+                      .Substring(0, 20);
             var author= new Author
             {
-                ID = (maxId + 1).ToString(),
+                ID = id,
                 Name = dto.Name,
                 Email = dto.Email,
                 Description = dto.Description,
                 Expertise = dto.Expertise,
-                Image = dto.Image                
+                Image = dto.Image   ,
+                Orcid= dto.Orcid,
             };
             await this._repo.Add(author);
             var response = new AuthorDto
@@ -106,6 +114,7 @@ namespace DigitalLibrary.Controllers
                 Expertise = author.Expertise,
                 Image = author.Image,
                 Email = author.Email,
+                Orcid    = author.Orcid,
             };
             return Ok(new ApiResponse<AuthorDto>
             {
@@ -133,7 +142,8 @@ namespace DigitalLibrary.Controllers
               , Description = result.Description,
               Expertise = result.Expertise,
               Email = result.Email,
-              Image  = result.Image 
+              Image  = result.Image ,
+              Orcid =result.Orcid  ,
             };
             try
             {

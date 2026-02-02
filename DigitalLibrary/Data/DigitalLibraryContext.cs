@@ -69,6 +69,7 @@ public partial class DigitalLibraryContext : DbContext
     public virtual DbSet<User_Author> User_Authors { get; set; }
 
     public  virtual DbSet<DocumentFile> DocumentFiles { get; set; }
+    public  virtual DbSet<UserOtpCode> UserOtpCode{ get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

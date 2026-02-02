@@ -43,9 +43,9 @@ namespace DigitalLibrary.Repositories
             return await _context.Authors.FindAsync(user_author.AuthorID);
         }
 
-        public async Task<int> GetMaxId()
+        public async Task<User> GetByEmail(string email)
         {
-            return int.Parse(await _context.Users.MaxAsync(u => u.ID));
+            return await this._context.Users.Include(u=>u.Role).FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<bool> Update(User entity)

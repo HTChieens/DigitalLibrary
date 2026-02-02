@@ -1,4 +1,5 @@
 ﻿using DigitalLibrary.Data;
+using DigitalLibrary.DTOs.Documents;
 using DigitalLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,11 +37,25 @@ namespace DigitalLibrary.Repositories
             return await _context.Authors.ToListAsync();
         }
 
-        public async Task<ICollection<Document>> GetDocuments(string authorId)
+        public async Task<ICollection<DocumentListDto>> GetDocuments(string authorId)
         {
             var author =await this.Find(authorId);
+            
             if (author == null) return null;
-            return author.Documents;
+            var profiles = new List<DocumentListDto>();
+
+            foreach (var doc in author.Documents)
+            {
+                profiles.Add(new DocumentListDto
+                {
+                    Id = doc.DocumentId,
+                    CoverPath = doc.CoverPath,
+                    DocumentType = doc.DocumentType,
+                    PublicationDate = doc.PublicationDate,
+                    Title = doc.Title,
+                });
+            }
+            return profiles;
         }
 
         public async Task<int> GetMaxId()

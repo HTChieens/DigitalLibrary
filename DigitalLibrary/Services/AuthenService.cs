@@ -18,6 +18,12 @@ namespace DigitalLibrary.Services
             this._passwordHasher = passwordHasher;
             this._jwtTokenService = jwtTokenService;
         }
+
+        public Task<string> ForgotPassword(SendOtpDto dto)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<LoginResponseDto?> LoginAsync(LoginDto loginDTO)
         {
             var user =await _context.Users.Include(u=>u.Role).FirstOrDefaultAsync(u => u.Email == loginDTO.Email);
@@ -31,6 +37,7 @@ namespace DigitalLibrary.Services
             }
             var response = new LoginResponseDto
             {
+                UserId = user.ID,
                 Email = user.Email,
                 Name = user.Name,
                 PhoneNumber = user.PhoneNumber,

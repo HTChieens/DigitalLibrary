@@ -11,7 +11,7 @@ namespace DigitalLibrary.Controllers
 {
     [Route("api/[controller]")]
     [ApiController] 
-    [Authorize(Roles = "Admin,Librarian")]
+    //[Authorize(Roles = "Admin,Librarian")]
     public class UsersManagementController : ControllerBase
     {
         private readonly IUserRepository _userRepo;
@@ -101,9 +101,14 @@ namespace DigitalLibrary.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResponse<UserAddDto>>> Add([FromBody] UserAddDto userAddDto)
         {
+            string id = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                        .Replace("+", "")
+                        .Replace("/", "")
+                        .Substring(0, 20);
+
             var user = new User
             {
-                ID = Guid.NewGuid().ToString("N"),
+                ID = id,
                 Name = userAddDto.Name,
                 Email = userAddDto.Email,
                 PasswordHash = this._passwordHasher.HashPassword(userAddDto.Password),

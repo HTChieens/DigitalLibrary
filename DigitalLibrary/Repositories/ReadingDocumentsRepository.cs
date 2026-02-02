@@ -1,4 +1,5 @@
 ﻿using DigitalLibrary.Data;
+using DigitalLibrary.DTOs.ReadingDocuments;
 using DigitalLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,9 +44,20 @@ namespace DigitalLibrary.Repositories
             return await _context.ReadingDocuments.ToListAsync();
         }
 
-        public Task<int> GetMaxId()
+        public async Task<List<RdResponseDto>> GetByUserId(string userId)
         {
-            throw new NotImplementedException();
+            var result = await _context.ReadingDocuments
+                .Include(re=>re.Document)
+                .Where(re => re.UserID == userId)
+                .Select(re=> new RdResponseDto { 
+                    DocumentId = re.DocumentID,
+                    CoverPath = re.Document.CoverPath,
+                     CurrentPage = re.CurrentPage,
+                     FirstReadAt = re.FirstReadAt,
+                     LastReadAt = re.LastReadAt ,
+                     Title = re.Document.Title
+                }).ToListAsync();
+            return result;
         }
 
         public async Task<bool> Update(ReadingDocument entity)

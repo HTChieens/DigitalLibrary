@@ -26,7 +26,7 @@ namespace DigitalLibrary.Services
                 new Claim(ClaimTypes.NameIdentifier, user.ID),
                 new Claim(ClaimTypes.Email, user.Email ?? ""),
                 new Claim(ClaimTypes.Name, user.Name?? ""),
-              //  new Claim(ClaimTypes.MobilePhone, user.PhoneNumber?? ""),
+                new Claim(ClaimTypes.MobilePhone, user.PhoneNumber?? ""),
                 new Claim(ClaimTypes.Role, user.Role.Name?? "")
             };
             var tokenDescriptor = new SecurityTokenDescriptor

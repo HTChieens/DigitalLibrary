@@ -13,6 +13,7 @@ namespace DigitalLibrary.DTOs.Authors
         public string? Image { get; set; }
 
         public string? Expertise { get; set; }
+        public string? Orcid { get; set; }
     }
 
 }
