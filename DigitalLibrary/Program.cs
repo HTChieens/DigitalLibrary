@@ -69,15 +69,15 @@ builder.Services.AddDbContext<DigitalLibraryContext>(option =>
     option.UseSqlServer(
         builder.Configuration.GetConnectionString("DigitalLibrary")
 ));
-builder.Services.AddSingleton<IPasswordHasherService,PasswordHasherService>();
-builder.Services.AddScoped<IAuthenService,AuthenService>();
-builder.Services.AddSingleton<IJwtTokenService,JwtTokenService>();
-builder.Services.AddScoped<IUserRepository,UserRepository>();
-builder.Services.AddScoped<IRoleRepository,RoleRepository>();
-builder.Services.AddScoped<IPermissionRepository,PermissionRepository>();
-builder.Services.AddScoped<IAuthorRepository,AuthorRepository>();
-builder.Services.AddScoped<IUserAuthorRepository,UserAuthorRepository>();
-builder.Services.AddScoped<IReadingDocumentRepository,ReadingDocumentsRepository>();
+builder.Services.AddSingleton<IPasswordHasherService, PasswordHasherService>();
+builder.Services.AddScoped<IAuthenService, AuthenService>();
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
+builder.Services.AddScoped<IUserAuthorRepository, UserAuthorRepository>();
+builder.Services.AddScoped<IReadingDocumentRepository, ReadingDocumentsRepository>();
 
 
 var jwtSecret = builder.Configuration["Jwt:Secret"];
@@ -127,6 +127,9 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAngular");
 
 app.UseHttpsRedirection();
+
+
+app.UseStaticFiles();
 
 app.UseAuthorization();
 

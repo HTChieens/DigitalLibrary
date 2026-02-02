@@ -3,7 +3,6 @@ using DigitalLibrary.DTOs.Librarians;
 using DigitalLibrary.DTOs.Submissions;
 using DigitalLibrary.Models;
 using DigitalLibrary.Services.SubmissionHistories;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace DigitalLibrary.Services.Submissions
@@ -99,29 +98,40 @@ namespace DigitalLibrary.Services.Submissions
             var submission = await _context.Submissions
                 .Include(s => s.Document)
                 .FirstOrDefaultAsync(s => s.Id == submissionId);
-            if (submission!.Status == "Accept" || submission.Status == "Reject")
+
+            if (submission == null) throw new Exception("Submission not found");
+            if (submission.Status == "Accept" || submission.Status == "Reject")
                 throw new Exception("Submission is not in reviewable state");
 
-            if (_context.SubmissionHistories.Any(sh => sh.PerformedBy == reviewerId && (sh.Comment == "OK" || sh.Comment == "Không đạt")))
-            {
-                throw new Exception("You have already reviewed the submission");
-            }
-
-
-            var last_review = _context.SubmissionHistories
+            var lastAction = await _context.SubmissionHistories
                 .Where(sh => sh.SubmissionId == submissionId)
                 .OrderByDescending(sh => sh.CreatedAt)
-                .First();
-            if (last_review.PerformedBy == reviewerId)
+                .FirstOrDefaultAsync();
+
+            if (lastAction != null && lastAction.PerformedBy == reviewerId)
             {
                 throw new Exception("Author hasn’t had time to reconsider document yet");
             }
 
-            return _context.DocumentFiles
+            var alreadyReviewed = await _context.SubmissionHistories.AnyAsync(sh =>
+                sh.SubmissionId == submissionId &&
+                sh.PerformedBy == reviewerId &&
+                (sh.Comment == "OK" || sh.Comment == "Không đạt")
+            );
+
+            if (alreadyReviewed)
+            {
+                throw new Exception("You have already reviewed this version of the submission");
+            }
+
+            var file = await _context.DocumentFiles
                 .Where(d => d.DocumentId == submission.DocumentId)
                 .OrderByDescending(d => d.Version)
-                .Select(d => d.FilePath)
-                .First();
+                .FirstOrDefaultAsync();
+
+            if (file == null) throw new Exception("No document file found");
+
+            return file.FilePath;
         }
 
         public async Task ReviewAsync(ReviewSubmissionDto dto, string reviewerId)
@@ -129,10 +139,10 @@ namespace DigitalLibrary.Services.Submissions
             var submission = await _context.Submissions
                 .FirstOrDefaultAsync(s => s.Id == dto.SubmissionId);
 
-            submission!.CurrentStep++;
-            submission.UpdatedAt = DateTime.UtcNow;
+            if (submission == null) throw new Exception("Không tìm thấy Submission");
 
-            await _context.SaveChangesAsync();
+            submission.CurrentStep++;
+            submission.UpdatedAt = DateTime.UtcNow;
 
             await _historyService.AddAsync(
                 submission.Id,
@@ -140,28 +150,56 @@ namespace DigitalLibrary.Services.Submissions
                 "Review",
                 dto.Comment);
 
-            var total = _context.SubmissionHistories.Where(sh => sh.SubmissionId == submission.Id && sh.Action == "AssignReviewer").Count();
-            var count = _context.SubmissionHistories.Where(sh => sh.SubmissionId == submission.Id && sh.Comment == "OK" || sh.Comment == "Không đạt").Count();
-            var emails = _context.Users.Where(u => u.RoleID == "4").Select(u => u.Email);
+            await _context.SaveChangesAsync();
+
+            var total = await _context.SubmissionHistories
+                .CountAsync(sh => sh.SubmissionId == submission.Id && sh.Action == "AssignReviewer");
+
+            var count = await _context.SubmissionHistories
+                .CountAsync(sh => sh.SubmissionId == submission.Id && (sh.Comment == "OK" || sh.Comment == "Không đạt"));
+
             if (count == total)
             {
-                foreach (string email in emails)
+                var librarians = await _context.Users.Where(u => u.RoleID == "3").ToListAsync();
+                foreach (var lib in librarians)
                 {
                     await _emailService.SendAsync(
-                        email,
-                        "Phê duyệt submission",
-                        $@"
-                        <p>Xin chào <b> thủ thư</b>,</p>
-                        <p>
-                            Các Reviewer đá đánh giá xong tài liệu {submission.Id}.
-                        </p>
-                        <p>
-                            Vui lòng vào website thư viện để phê duyệt cho submission này!
-                        </p>
-                    "
+                        lib.Email!,
+                        "Tài liệu đã hoàn tất quá trình Review",
+                        $"Tài liệu <b>{submission.Document.Title}</b> đã được tất cả các Reviewer đánh giá. Vui lòng thực hiện phê duyệt cuối cùng."
                     );
                 }
             }
+        }
+
+        public async Task<List<SubmissionListDto>> GetAssignedToReviewerAsync(string reviewerId)
+        {
+            var assignedSubmissionIds = await _context.SubmissionHistories
+                .Where(h => h.Action == "AssignReviewer" && h.Comment == reviewerId)
+                .Select(h => h.SubmissionId)
+                .Distinct()
+                .ToListAsync();
+
+            return await _context.Submissions
+                .Where(s => assignedSubmissionIds.Contains(s.Id))
+                .OrderByDescending(s => s.CreatedAt)
+                .Select(s => new SubmissionListDto
+                {
+                    SubmissionId = s.Id,
+                    DocumentTitle = s.Document.Title,
+                    DocumentType = s.Document.DocumentType,
+                    CollectionName = s.Collection.Name,
+                    CreatedAt = s.CreatedAt,
+                    Status = s.Status,
+                    CurrentStep = s.CurrentStep,
+
+                    ReviewerCount = _context.SubmissionHistories
+                        .Where(h => h.SubmissionId == s.Id && h.Action == "AssignReviewer")
+                        .Select(h => h.Comment)
+                        .Distinct()
+                        .Count()
+                })
+                .ToListAsync();
         }
 
         public async Task FinalReviewAsync(Guid submissionId, string librarianId)
@@ -172,35 +210,51 @@ namespace DigitalLibrary.Services.Submissions
                 .Include(s => s.Document)
                 .FirstOrDefaultAsync(s => s.Id == submissionId);
 
-            if (submission == null)
+            if (submission == null) throw new Exception("Submission not found");
+
+            var assignedReviewerIds = await _context.SubmissionHistories
+                .Where(h => h.SubmissionId == submissionId && h.Action == "AssignReviewer")
+                .Select(h => h.Comment)
+                .ToListAsync();
+
+            if (assignedReviewerIds.Count == 0)
+                throw new Exception("Tài liệu này chưa được phân công Reviewer nào.");
+
+            var reviews = await _context.SubmissionHistories
+                .Where(h => h.SubmissionId == submissionId && h.Action == "Review")
+                .ToListAsync();
+
+            var reviewerWhoFinished = reviews.Select(r => r.PerformedBy).Distinct().Count();
+
+            if (reviewerWhoFinished < assignedReviewerIds.Count)
             {
-                throw new Exception("Submission not found");
+                throw new Exception($"Chưa thể phê duyệt. Mới có {reviewerWhoFinished}/{assignedReviewerIds.Count} Reviewer hoàn thành đánh giá.");
             }
 
-            var accept = _context.SubmissionHistories.Where(sh => sh.Comment == "OK").Count();
-            var reject = _context.SubmissionHistories.Where(sh => sh.Comment == "Không đạt").Count();
+            var acceptCount = reviews.Count(r => r.Comment == "OK");
+            var rejectCount = reviews.Count(r => r.Comment == "Không đạt");
 
-            if (accept > reject)
+            string finalStatus;
+            if (acceptCount > rejectCount)
             {
-                submission.Status = "Accept";
+                finalStatus = "Accept";
+                _context.CollectionDocuments.Add(new CollectionDocument
+                {
+                    CollectionId = submission.CollectionId,
+                    DocumentId = submission.DocumentId,
+                    AddedAt = DateTime.UtcNow
+                });
             }
             else
             {
-                submission.Status = "Reject";
+                finalStatus = "Reject";
             }
 
+            submission.Status = finalStatus;
             submission.UpdatedAt = DateTime.UtcNow;
 
-            _context.CollectionDocuments.Add(new CollectionDocument
-            {
-                CollectionId = submission.CollectionId,
-                DocumentId = submission.DocumentId,
-                AddedAt = DateTime.UtcNow
-            });
-
             await _context.SaveChangesAsync();
-
-            await _historyService.AddAsync(submission.Id, librarianId, "Accept", "Submitted by librarian");
+            await _historyService.AddAsync(submission.Id, librarianId, finalStatus, $"Thủ thư phê duyệt cuối cùng dựa trên {acceptCount} phiếu thuận / {rejectCount} phiếu chống.");
 
             await tx.CommitAsync();
         }
@@ -213,7 +267,6 @@ namespace DigitalLibrary.Services.Submissions
             return 4;
         }
 
-
         public async Task<int> GetAssignedReviewerCountAsync(Guid submissionId)
         {
             return await _context.SubmissionHistories
@@ -222,7 +275,6 @@ namespace DigitalLibrary.Services.Submissions
                 .Distinct()
                 .CountAsync();
         }
-
 
         public async Task AssignReviewerAsync(Guid submissionId, string reviewerId, string librarianId)
         {
@@ -278,31 +330,54 @@ namespace DigitalLibrary.Services.Submissions
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Guid submissionId, Guid collectionId, string userId)
+        public async Task UpdateAsync(Guid submissionId, Guid? collectionId, string userId, bool hasNewFile)
         {
             using var tx = await _context.Database.BeginTransactionAsync();
 
             var submission = await _context.Submissions
-                .FirstOrDefaultAsync(s => s.Id == submissionId);
+                .FirstOrDefaultAsync(s => s.Id == submissionId)
+                ?? throw new Exception("Submission not found");
 
-            if (submission == null)
-                throw new Exception("Submission not found");
+            if (submission.Status is "Accept" or "Reject")
+                throw new Exception("This submission cannot be modified");
 
-            if (submission.Status == "Accept" || submission.Status == "Reject")
-                throw new Exception("This submission cannot change collection");
+            if (collectionId.HasValue && submission.CollectionId != collectionId)
+            {
+                submission.CollectionId = collectionId.Value;
 
-            submission.CollectionId = collectionId;
+                await _historyService.AddAsync(
+                    submissionId,
+                    userId,
+                    "Update",
+                    "Change collection");
+            }
+
+            if (hasNewFile)
+            {
+                submission.Status = "Pending";
+                submission.CurrentStep += 1;
+
+                await _historyService.AddAsync(
+                    submissionId,
+                    userId,
+                    "Revise",
+                    "Submit new version");
+            }
+            else
+            {
+                await _historyService.AddAsync(
+                    submissionId,
+                    userId,
+                    "Revise",
+                    "Update document information");
+            }
+
             submission.UpdatedAt = DateTime.UtcNow;
-
-            await _historyService.AddAsync(
-                submissionId,
-                userId,
-                "Update",
-                "Change collection");
 
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
         }
+
 
         public async Task AddDoctoCollectionAsync(AddDotoCollectionDto dto)
         {
@@ -313,6 +388,122 @@ namespace DigitalLibrary.Services.Submissions
                 AddedAt = DateTime.UtcNow
             });
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<SubmissionListDto>> GetByUserAsync(string userId)
+        {
+            return await _context.Submissions
+                .Where(s => s.SubmitterId == userId)
+                .OrderByDescending(s => s.CreatedAt)
+                .Select(s => new SubmissionListDto
+                {
+                    SubmissionId = s.Id,
+                    DocumentTitle = s.Document.Title,
+                    DocumentType = s.Document.DocumentType,
+                    CollectionName = s.Collection.Name,
+                    CreatedAt = s.CreatedAt,
+                    Status = s.Status,
+
+                    CurrentStep = s.CurrentStep,
+
+                    ReviewerCount = _context.SubmissionHistories
+                        .Where(h =>
+                            h.SubmissionId == s.Id &&
+                            h.Action == "AssignReviewer"
+                        )
+                        .Select(h => h.Comment)
+                        .Distinct()
+                        .Count()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<SubmissionListDto>> GetAllAsync()
+        {
+            return await _context.Submissions
+                .OrderByDescending(s => s.CreatedAt)
+                .Select(s => new SubmissionListDto
+                {
+                    SubmissionId = s.Id,
+                    DocumentTitle = s.Document.Title,
+                    DocumentType = s.Document.DocumentType,
+                    CollectionName = s.Collection.Name,
+                    CreatedAt = s.CreatedAt,
+                    Status = s.Status,
+
+                    CurrentStep = s.CurrentStep,
+
+                    ReviewerCount = _context.SubmissionHistories
+                        .Where(h =>
+                            h.SubmissionId == s.Id &&
+                            h.Action == "AssignReviewer"
+                        )
+                        .Select(h => h.Comment)
+                        .Distinct()
+                        .Count()
+                })
+                .ToListAsync();
+        }
+
+
+
+        public async Task<List<SubmissionHistoryDto>> GetHistoryAsync(Guid submissionId)
+        {
+            var histories = await _context.SubmissionHistories
+                .Where(h => h.SubmissionId == submissionId)
+                .OrderBy(h => h.CreatedAt)
+                .ToListAsync();
+
+            var userIds = histories
+                .Select(h => h.PerformedBy)
+                .Concat(histories
+                    .Where(h => h.Action.Equals("AssignReviewer", StringComparison.OrdinalIgnoreCase))
+                    .Select(h => h.Comment))
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList();
+
+            var users = await _context.Users
+                .Where(u => userIds.Contains(u.ID))
+                .ToDictionaryAsync(u => u.ID, u => u.Name);
+
+            return histories.Select(h =>
+            {
+                string? comment = h.Comment;
+
+                if (h.Action.Equals("AssignReviewer", StringComparison.OrdinalIgnoreCase)
+                    && !string.IsNullOrEmpty(h.Comment)
+                    && users.TryGetValue(h.Comment, out var reviewerName))
+                {
+                    comment = $"Reviewer: {reviewerName}";
+                }
+
+                return new SubmissionHistoryDto
+                {
+                    Id = h.Id,
+                    Action = h.Action,
+                    Comment = comment,
+                    PerformedById = h.PerformedBy,
+                    PerformedByName = users.GetValueOrDefault(h.PerformedBy, "Unknown"),
+                    CreatedAt = h.CreatedAt
+                };
+            }).ToList();
+        }
+
+
+        public async Task<object?> GetSimpleInfoAsync(Guid submissionId)
+        {
+            return await _context.Submissions
+                .Where(s => s.Id == submissionId)
+                .Select(s => new
+                {
+                    Id = s.Id,
+                    DocumentId = s.DocumentId,
+                    SubmitterId = s.SubmitterId,
+                    Status = s.Status,
+                    CollectionId = s.CollectionId
+                })
+                .FirstOrDefaultAsync();
         }
     }
 }

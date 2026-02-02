@@ -10,8 +10,10 @@ namespace DigitalLibrary.DTOs.Documents
         public string? Description { get; set; }
         public string DocumentType { get; set; } = null!;
         public int PageNum { get; set; }
-        public DateOnly PublicationDate { get; set; }
+        public DateTime PublicationDate { get; set; }
         public string CoverPath { get; set; } = null!;
+        public int? IntroEndPage { get; set; }
+        public Guid? CollectionId { get; set; }
 
         public InternalBookDto? InternalBook { get; set; }
         public ThesisDto? Thesis { get; set; }

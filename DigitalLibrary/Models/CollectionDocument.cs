@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DigitalLibrary.Models;
+﻿namespace DigitalLibrary.Models;
 
 public partial class CollectionDocument
 {
-    public Guid CollectionId { get; set; }
+    public Guid? CollectionId { get; set; }
 
     public string DocumentId { get; set; } = null!;
 

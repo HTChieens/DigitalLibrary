@@ -20,7 +20,7 @@ namespace DigitalLibrary.Services.Documents
         Task<List<DocumentListDto>> SearchAsync(string keyword);
         Task<string> CreateAsync(CreateDocumentDto dto);
         Task UploadNewVersionAsync(string documentId, UploadNewFileDto dto, string userId);
-        Task UpdateAsync(Guid submissionId, UpdateDocumentDto dto);
+        Task UpdateAsync(Guid submissionId, UpdateDocumentDto dto, string userId);
         Task<List<DocumentFile>> GetFilesById(string Id);
         Task<List<DocumentList2Dto>> GetByViewsAsync();
         Task<List<DocumentPopularDto>> GetByDownloadsAsync();

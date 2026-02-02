@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DigitalLibrary.Models;
+﻿namespace DigitalLibrary.Models;
 
 public partial class Submission
 {
@@ -9,7 +6,7 @@ public partial class Submission
 
     public string DocumentId { get; set; } = null!;
 
-    public Guid CollectionId { get; set; }
+    public Guid? CollectionId { get; set; }
 
     public string SubmitterId { get; set; } = null!;
 

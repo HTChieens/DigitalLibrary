@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DigitalLibrary.Models;
+﻿namespace DigitalLibrary.Models;
 
 public partial class Document
 {
@@ -13,7 +10,7 @@ public partial class Document
 
     public string DocumentType { get; set; } = null!;
 
-    public DateOnly PublicationDate { get; set; }
+    public DateTime PublicationDate { get; set; }
 
     public int PageNum { get; set; }
 

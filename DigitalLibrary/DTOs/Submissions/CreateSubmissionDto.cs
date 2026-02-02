@@ -3,6 +3,6 @@
     public class CreateSubmissionDto
     {
         public string DocumentId { get; set; } = null!;
-        public Guid CollectionId { get; set; }
+        public Guid? CollectionId { get; set; }
     }
 }

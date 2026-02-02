@@ -4,6 +4,7 @@ using DigitalLibrary.DTOs.Submissions;
 using DigitalLibrary.Services.Documents;
 using DigitalLibrary.Services.Submissions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DigitalLibrary.Controllers
 {
@@ -11,25 +12,27 @@ namespace DigitalLibrary.Controllers
     [ApiController]
     public class DocumentsController : ControllerBase
     {
+        private readonly DigitalLibraryContext _context;
         private readonly IDocumentService _documentService;
         private readonly ISubmissionService _submissionService;
 
         public DocumentsController(DigitalLibraryContext context, IDocumentService documentService, ISubmissionService submissionService)
         {
+            _context = context;
             _documentService = documentService;
             _submissionService = submissionService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll(
-[FromQuery] string? authorId,
-[FromQuery] string? collectionId,
-[FromQuery] string? communityId,
-[FromQuery] string? type,
-[FromQuery] string? keyword,
-[FromQuery] string? sortBy = "newest",
-[FromQuery] int page = 1,
-[FromQuery] int pageSize = 12)
+            [FromQuery] string? authorId,
+            [FromQuery] string? collectionId,
+            [FromQuery] string? communityId,
+            [FromQuery] string? type,
+            [FromQuery] string? keyword,
+            [FromQuery] string? sortBy = "newest",
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12)
         {
             var result = await _documentService.GetAllAsync(
             authorId,
@@ -67,8 +70,12 @@ namespace DigitalLibrary.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(CreateDocumentDto dto)
+        public async Task<IActionResult> Create([FromForm] CreateDocumentDto dto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var docId = await _documentService.CreateAsync(dto);
 
             var userId = User.Identity!.Name!;
@@ -98,15 +105,29 @@ namespace DigitalLibrary.Controllers
             return Ok();
         }
 
-        [HttpPut("update")]
-        public async Task<IActionResult> Update(Guid submissionId, UpdateDocumentDto dto)
+
+        [HttpPut("update/{submissionId}")]
+        public async Task<IActionResult> Update(Guid submissionId, [FromForm] UpdateDocumentDto dto)
         {
-            await _documentService.UpdateAsync(submissionId, dto);
 
-            var userId = User.Identity!.Name!;
+            try
+            {
+                await _documentService.UpdateAsync(submissionId, dto, "6");
+                return Ok(new { message = "Update successful" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
 
-            await _submissionService.UpdateAsync(submissionId, dto.CollectionId, "6");
-            return Ok();
+        [HttpGet("licenses")]
+        public async Task<IActionResult> GetAllLicenses()
+        {
+            var licenses = await _context.Licenses
+                .Select(l => new { l.ID, l.Name, l.Content })
+                .ToListAsync();
+            return Ok(licenses);
         }
 
         [HttpGet("popular")]
@@ -136,14 +157,12 @@ namespace DigitalLibrary.Controllers
             return Ok(await _documentService.GetCommunities());
         }
 
-        // 2. Lấy danh sách Bộ sưu tập
         [HttpGet("collections")]
         public async Task<IActionResult> GetCollections()
         {
             return Ok(await _documentService.GetCollections());
         }
 
-        // 3. Lấy danh sách Tác giả
         [HttpGet("authors")]
         public async Task<IActionResult> GetAuthors()
         {

@@ -5,7 +5,7 @@
         public string Id { get; set; }
         public string DocumentId { get; set; }
         public string UserId { get; set; }
-        public string UserName { get; set; } // Cực kỳ quan trọng để hiển thị
+        public string UserName { get; set; }
         public int? Rating { get; set; }
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }

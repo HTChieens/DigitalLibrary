@@ -54,14 +54,13 @@ namespace DigitalLibrary.Services.Documents
         {
             return await _context.Authors
             .Where(a =>
-            a.Documents.Any(d =>
-            !d.IsDeleted &&
-            d.Submissions.Any(s => s.Status == "Approved")
-            )
+                a.Documents.Any(d =>
+                    !d.IsDeleted &&
+                    d.Submissions.Any(s => s.Status == "Approved")
+                )
             )
             .ToListAsync();
         }
-
 
         public async Task<List<DocumentFile>> GetFilesById(string Id)
         {
@@ -74,13 +73,12 @@ namespace DigitalLibrary.Services.Documents
         {
             var reviews = await _context.Reviews
                 .Where(r => r.DocumentID == id)
-                .OrderByDescending(r => r.CreatedAt) // Bình luận mới nhất lên đầu
+                .OrderByDescending(r => r.CreatedAt)
                 .Select(r => new ReviewDto
                 {
                     Id = r.ID.ToString(),
                     DocumentId = r.DocumentID,
                     UserId = r.UserID,
-                    // Lấy tên từ bảng Users thông qua liên kết
                     UserName = _context.Users.Where(u => u.ID == r.UserID).FirstOrDefault().Name,
                     Rating = r.Rating,
                     Content = r.Content,
@@ -91,15 +89,7 @@ namespace DigitalLibrary.Services.Documents
             return reviews;
         }
 
-        public async Task<object> GetAllAsync(
-string? authorId,
-string? collectionId,
-string? communityId,
-string? type,
-string? keyword,
-string sortBy,
-int page,
-int pageSize)
+        public async Task<object> GetAllAsync(string? authorId, string? collectionId, string? communityId, string? type, string? keyword, string sortBy, int page, int pageSize)
         {
             var query = _context.Documents
             .Where(d =>
@@ -108,7 +98,6 @@ int pageSize)
             )
             .AsQueryable();
 
-            // -------- FILTERS --------
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 query = query.Where(d =>
@@ -145,7 +134,6 @@ int pageSize)
                 query = query.Where(d => d.DocumentType == type);
             }
 
-            // -------- SORTING --------
             query = sortBy switch
             {
                 "trending" => query.OrderByDescending(d =>
@@ -157,7 +145,6 @@ int pageSize)
                 _ => query.OrderByDescending(d => d.CreatedAt)
             };
 
-            // -------- PAGINATION --------
             var totalItems = await query.CountAsync();
 
             var documents = await query
@@ -183,13 +170,10 @@ int pageSize)
             };
         }
 
-
-
-
         public async Task<DocumentDetailDto?> GetByIdAsync(string Id)
         {
             var doc = await _context.Documents
-                .Where(d => d.DocumentId == Id && !d.IsDeleted && d.Submissions.Any(s => s.Status == "Approved"))
+                .Where(d => d.DocumentId == Id)
                 .Select(d => new DocumentDetailDto
                 {
                     Id = d.DocumentId,
@@ -199,22 +183,24 @@ int pageSize)
                     PageNum = d.PageNum,
                     PublicationDate = d.PublicationDate,
                     CoverPath = d.CoverPath,
+                    IntroEndPage = d.IntroEndPage,
+                    CollectionId = _context.Submissions.Where(s => s.DocumentId == Id).Select(s => s.CollectionId).FirstOrDefault(),
 
-                    // --- TÍNH TOÁN THỐNG KÊ TRỰC TIẾP TRÊN DATABASE ---
+
                     TotalReviews = d.Reviews.Count(),
-                    // Tính trung bình cộng Rating, nếu không có ai đánh giá thì mặc định 0
                     AvgRating = d.Reviews.Any() ? Math.Round(d.Reviews.Average(r => (double)(r.Rating ?? 0)), 1) : 0,
 
-                    // Đếm từ các bảng liên quan
                     TotalDownloads = _context.Downloads.Count(dl => dl.DocumentID == d.DocumentId),
                     TotalViews = _context.ReadingDocuments.Count(rd => rd.DocumentID == d.DocumentId),
 
-                    // --- LẤY DANH SÁCH TÁC GIẢ VÀ ĐỊNH DANH ---
                     Authors = d.Authors.Select(a => new AuthorDto
                     {
                         Name = a.Name,
                         Email = a.Email,
                         Expertise = a.Expertise,
+                        OrcId = a.Orcid,
+                        Image = a.Image,
+                        Description = a.Description
                     }).ToList(),
 
                     Keywords = d.Keywords.Select(k => k.Name).ToList(),
@@ -227,7 +213,6 @@ int pageSize)
                             Value = i.Value
                         }).ToList(),
 
-                    // --- CÁC KHỐI THÔNG TIN CHI TIẾT THEO LOẠI ---
                     InternalBook = d.InternalBook == null ? null : new InternalBookDto
                     {
                         Faculty = d.InternalBook.Faculty,
@@ -263,9 +248,9 @@ int pageSize)
 
                     Licenses = d.Document_Licenses.Select(dl => new LicenseDto
                     {
+                        Id = dl.License.ID,
                         Name = dl.License.Name,
-                        Content = dl.License.Content,
-                        AcceptedAt = dl.AcceptedAt
+                        Content = dl.License.Content
                     }).ToList()
                 })
                 .FirstOrDefaultAsync();
@@ -296,62 +281,6 @@ int pageSize)
             return list;
         }
 
-        private void CreateSubTypeAsync(string documentId, CreateDocumentDto dto)
-        {
-            switch (dto.DocumentType)
-            {
-                case "InternalBook":
-                    _context.InternalBooks.Add(new InternalBook
-                    {
-                        DocumentID = documentId,
-                        Faculty = dto.InternalBook!.Faculty,
-                        DocumentType = dto.InternalBook.DocumentType,
-                        Version = dto.InternalBook.Version
-                    });
-                    break;
-
-                case "ExternalBook":
-                    _context.ExternalBooks.Add(new ExternalBook
-                    {
-                        DocumentID = documentId,
-                        Publisher = dto.ExternalBook!.Publisher,
-                        Version = dto.ExternalBook.Version
-                    });
-                    break;
-
-                case "Thesis":
-                    _context.Theses.Add(new Thesis
-                    {
-                        DocumentID = documentId,
-                        DegreeLevel = dto.Thesis!.DegreeLevel,
-                        Discipline = dto.Thesis.Discipline,
-                        AdvisorName = dto.Thesis.AdvisorName,
-                        Abstract = dto.Thesis.Abstract
-                    });
-                    break;
-
-                case "Research":
-                    _context.Researches.Add(new Research
-                    {
-                        DocumentID = documentId,
-                        Abstract = dto.Research!.Abstract,
-                        ResearchLevel = dto.Research.ResearchLevel
-                    });
-                    break;
-
-                case "ResearchPublication":
-                    _context.ResearchPublications.Add(new ResearchPublication
-                    {
-                        DocumentID = documentId,
-                        VenueName = dto.ResearchPublication!.VenueName,
-                        PublicationType = dto.ResearchPublication.PublicationType
-                    });
-                    break;
-
-                default:
-                    throw new Exception("Invalid DocumentType");
-            }
-        }
 
         private async Task<Author> GetOrCreateAuthorAsync(AuthorInputDto dto)
         {
@@ -367,21 +296,43 @@ int pageSize)
                 author = await _context.Authors.FirstOrDefaultAsync(a => a.Email == dto.Email);
             }
 
-            if (author == null)
+            if (author != null)
             {
-                author = new Author
-                {
-                    ID = Guid.NewGuid().ToString("N")[..16],
-                    Name = dto.Name,
-                    Email = dto.Email,
-                    Orcid = dto.Orcid,
-                    Description = dto.Description,
-                    Image = dto.Image,
-                    Expertise = dto.Expertise
-                };
-
-                _context.Authors.Add(author);
+                return author;
             }
+
+            string? imagePathInDb = null;
+
+            if (dto.ImageFile != null)
+            {
+                ValidateImage(dto.ImageFile);
+
+                var imageFileName = GenerateUniqueFileName(dto.ImageFile.FileName);
+                var imageFolder = Path.Combine("wwwroot", "uploads", "authors");
+                Directory.CreateDirectory(imageFolder);
+
+                var fullPath = Path.Combine(imageFolder, imageFileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await dto.ImageFile.CopyToAsync(stream);
+                }
+
+                imagePathInDb = $"uploads/authors/{imageFileName}";
+            }
+
+            author = new Author
+            {
+                ID = Guid.NewGuid().ToString("N")[..16],
+                Name = dto.Name,
+                Email = dto.Email,
+                Orcid = dto.Orcid,
+                Description = dto.Description,
+                Expertise = dto.Expertise,
+                Image = imagePathInDb
+            };
+
+            _context.Authors.Add(author);
 
             return author;
         }
@@ -390,17 +341,35 @@ int pageSize)
         {
             await _context.Entry(doc).Collection(d => d.Keywords).LoadAsync();
 
-            foreach (var k in keywords)
+            var incomingNames = keywords
+                .Where(k => !string.IsNullOrWhiteSpace(k))
+                .Select(k => k.Trim())
+                .Distinct()
+                .ToList();
+
+            var toRemove = doc.Keywords
+                .Where(k => !incomingNames.Any(name => name.Equals(k.Name, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            foreach (var k in toRemove)
             {
-                var key = k.Trim();
-                var keyword = await _context.Keywords.FirstOrDefaultAsync(x => x.Name == key);
+                doc.Keywords.Remove(k);
+            }
+
+            foreach (var name in incomingNames)
+            {
+                if (doc.Keywords.Any(k => k.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                var keyword = await _context.Keywords
+                    .FirstOrDefaultAsync(x => x.Name.ToLower() == name.ToLower());
 
                 if (keyword == null)
                 {
                     keyword = new Keyword
                     {
                         ID = Guid.NewGuid().ToString("N")[..16],
-                        Name = key
+                        Name = name
                     };
                     _context.Keywords.Add(keyword);
                 }
@@ -417,23 +386,34 @@ int pageSize)
 
                 if (dto.Id.HasValue)
                 {
-                    license = await _context.Licenses.FirstOrDefaultAsync(l => l.ID == dto.Id.Value)
+                    license = await _context.Licenses
+                        .FirstOrDefaultAsync(l => l.ID == dto.Id.Value)
                         ?? throw new Exception("License not found");
                 }
                 else
                 {
+                    if (string.IsNullOrWhiteSpace(dto.Name) ||
+                        string.IsNullOrWhiteSpace(dto.Content))
+                    {
+                        throw new Exception("License Name và Content là bắt buộc");
+                    }
+
                     var name = dto.Name.Trim().ToLower();
 
                     license = await _context.Licenses
-                        .FirstOrDefaultAsync(l => l.Name.ToLower() == name)
-                        ?? new License
+                        .FirstOrDefaultAsync(l => l.Name.ToLower() == name);
+
+                    if (license == null)
+                    {
+                        license = new License
                         {
                             ID = Guid.NewGuid(),
-                            Name = dto.Name
+                            Name = dto.Name.Trim(),
+                            Content = dto.Content.Trim()
                         };
 
-                    if (_context.Entry(license).State == EntityState.Detached)
                         _context.Licenses.Add(license);
+                    }
                 }
 
                 _context.Document_Licenses.Add(new Document_License
@@ -444,7 +424,6 @@ int pageSize)
                 });
             }
         }
-
 
         private void AttachIdentifiers(string documentId, List<IdentifierDto> identifiers)
         {
@@ -463,30 +442,194 @@ int pageSize)
         private string GenerateUniqueFileName(string originalFileName)
         {
             var extension = Path.GetExtension(originalFileName);
+            var nameWithoutExt = Path.GetFileNameWithoutExtension(originalFileName);
             var guid = Guid.NewGuid().ToString("N");
 
-            return $"{guid}{extension}";
+            return $"{nameWithoutExt}_{guid}{extension}";
         }
 
+        private void ValidatePdf(IFormFile file)
+        {
+            if (file.ContentType != "application/pdf")
+                throw new Exception("Only PDF files are allowed.");
+
+            if (!Path.GetExtension(file.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Invalid PDF file.");
+        }
+
+        private void ValidateImage(IFormFile file)
+        {
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp" };
+
+            if (!allowedTypes.Contains(file.ContentType))
+                throw new Exception("Invalid image type.");
+        }
+
+        private void CreateSubTypeLogic(
+            string documentId,
+            string documentType,
+            InternalBookDto? internalBook,
+            ExternalBookDto? externalBook,
+            ThesisDto? thesis,
+            ResearchDto? research,
+            ResearchPublicationDto? researchPublication)
+        {
+            switch (documentType)
+            {
+                case "InternalBook":
+                    if (internalBook == null) throw new Exception("Thiếu thông tin Sách nội bộ");
+                    _context.InternalBooks.Add(new InternalBook
+                    {
+                        DocumentID = documentId,
+                        Faculty = internalBook.Faculty,
+                        DocumentType = internalBook.DocumentType,
+                        Version = internalBook.Version
+                    });
+                    break;
+                case "ExternalBook":
+                    if (externalBook == null) throw new Exception("Thiếu thông tin Sách xuất bản");
+                    _context.ExternalBooks.Add(new ExternalBook
+                    {
+                        DocumentID = documentId,
+                        Publisher = externalBook.Publisher,
+                        Version = externalBook.Version
+                    });
+                    break;
+                case "Thesis":
+                    if (thesis == null) throw new Exception("Thiếu thông tin Khóa luận");
+                    _context.Theses.Add(new Thesis
+                    {
+                        DocumentID = documentId,
+                        DegreeLevel = thesis.DegreeLevel,
+                        Discipline = thesis.Discipline,
+                        AdvisorName = thesis.AdvisorName,
+                        Abstract = thesis.Abstract
+                    });
+                    break;
+                case "Research":
+                    if (research == null) throw new Exception("Thiếu thông tin Nghiên cứu");
+                    _context.Researches.Add(new Research
+                    {
+                        DocumentID = documentId,
+                        Abstract = research.Abstract,
+                        ResearchLevel = research.ResearchLevel
+                    });
+                    break;
+                case "ResearchPublication":
+                    if (researchPublication == null) throw new Exception("Thiếu thông tin Bài báo");
+                    _context.ResearchPublications.Add(new ResearchPublication
+                    {
+                        DocumentID = documentId,
+                        VenueName = researchPublication.VenueName,
+                        PublicationType = researchPublication.PublicationType
+                    });
+                    break;
+            }
+        }
+
+        private async Task UpsertSubtypeLogicAsync(
+            string documentId,
+            string documentType,
+            InternalBookDto? internalBook,
+            ExternalBookDto? externalBook,
+            ThesisDto? thesis,
+            ResearchDto? research,
+            ResearchPublicationDto? researchPublication)
+        {
+            switch (documentType)
+            {
+                case "InternalBook":
+                    var ib = await _context.InternalBooks.FirstOrDefaultAsync(x => x.DocumentID == documentId) ?? new InternalBook { DocumentID = documentId };
+                    if (internalBook != null)
+                    {
+                        ib.Faculty = internalBook.Faculty; ib.DocumentType = internalBook.DocumentType; ib.Version = internalBook.Version;
+                        if (_context.Entry(ib).State == EntityState.Detached) _context.InternalBooks.Add(ib);
+                    }
+                    break;
+                case "ExternalBook":
+                    var eb = await _context.ExternalBooks.FirstOrDefaultAsync(x => x.DocumentID == documentId) ?? new ExternalBook { DocumentID = documentId };
+                    if (externalBook != null)
+                    {
+                        eb.Publisher = externalBook.Publisher; eb.Version = externalBook.Version;
+                        if (_context.Entry(eb).State == EntityState.Detached) _context.ExternalBooks.Add(eb);
+                    }
+                    break;
+                case "Thesis":
+                    var th = await _context.Theses.FirstOrDefaultAsync(x => x.DocumentID == documentId) ?? new Thesis { DocumentID = documentId };
+                    if (thesis != null)
+                    {
+                        th.DegreeLevel = thesis.DegreeLevel; th.Discipline = thesis.Discipline; th.AdvisorName = thesis.AdvisorName; th.Abstract = thesis.Abstract;
+                        if (_context.Entry(th).State == EntityState.Detached) _context.Theses.Add(th);
+                    }
+                    break;
+                case "Research":
+                    var res = await _context.Researches.FirstOrDefaultAsync(x => x.DocumentID == documentId) ?? new Research { DocumentID = documentId };
+                    if (research != null)
+                    {
+                        res.ResearchLevel = research.ResearchLevel; res.Abstract = research.Abstract;
+                        if (_context.Entry(res).State == EntityState.Detached) _context.Researches.Add(res);
+                    }
+                    break;
+                case "ResearchPublication":
+                    var rp = await _context.ResearchPublications.FirstOrDefaultAsync(x => x.DocumentID == documentId) ?? new ResearchPublication { DocumentID = documentId };
+                    if (researchPublication != null)
+                    {
+                        rp.VenueName = researchPublication.VenueName; rp.PublicationType = researchPublication.PublicationType;
+                        if (_context.Entry(rp).State == EntityState.Detached) _context.ResearchPublications.Add(rp);
+                    }
+                    break;
+            }
+        }
 
         public async Task<string> CreateAsync(CreateDocumentDto dto)
         {
-            if (_context.Identifiers.Any(i => i.Value.Trim().ToLower() == dto.Identifiers.First().Value.Trim().ToLower()))
-            {
-                throw new Exception("The document has already exsited!");
-            }
+            ValidatePdf(dto.File);
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
             try
             {
+
+                var pdfFileName = GenerateUniqueFileName(dto.File.FileName);
+                var pdfFolder = Path.Combine("wwwroot", "uploads", "documents");
+                Directory.CreateDirectory(pdfFolder);
+
+                var pdfFullPath = Path.Combine(pdfFolder, pdfFileName);
+                using (var stream = new FileStream(pdfFullPath, FileMode.Create))
+                {
+                    await dto.File.CopyToAsync(stream);
+                }
+
+                var pdfPathInDb = $"uploads/documents/{pdfFileName}";
+
+
+                string? coverPathInDb = null;
+
+                if (dto.CoverFile != null)
+                {
+                    ValidateImage(dto.CoverFile);
+
+                    var coverFileName = GenerateUniqueFileName(dto.CoverFile.FileName);
+                    var coverFolder = Path.Combine("wwwroot", "uploads", "covers");
+                    Directory.CreateDirectory(coverFolder);
+
+                    var coverFullPath = Path.Combine(coverFolder, coverFileName);
+                    using (var stream = new FileStream(coverFullPath, FileMode.Create))
+                    {
+                        await dto.CoverFile.CopyToAsync(stream);
+                    }
+
+                    coverPathInDb = $"uploads/covers/{coverFileName}";
+                }
+
+
                 var doc = new Models.Document
                 {
                     DocumentId = Guid.NewGuid().ToString("N")[..16],
                     Title = dto.Title,
                     Description = dto.Description,
                     DocumentType = dto.DocumentType,
-                    CoverPath = dto.CoverPath,
+                    CoverPath = coverPathInDb,
                     PublicationDate = dto.PublicationDate,
                     PageNum = dto.PageNum,
                     IntroEndPage = dto.IntroEndPage,
@@ -496,7 +639,8 @@ int pageSize)
 
                 _context.Documents.Add(doc);
 
-                CreateSubTypeAsync(doc.DocumentId, dto);
+
+                CreateSubTypeLogic(doc.DocumentId, dto.DocumentType, dto.InternalBook, dto.ExternalBook, dto.Thesis, dto.Research, dto.ResearchPublication);
 
                 foreach (var authorDto in dto.Authors)
                 {
@@ -504,21 +648,18 @@ int pageSize)
                     doc.Authors.Add(author);
                 }
 
-
                 await AttachKeywordsAsync(doc, dto.Keywords);
-
                 await AttachLicensesAsync(doc.DocumentId, dto.Licenses);
-
                 AttachIdentifiers(doc.DocumentId, dto.Identifiers);
+
 
                 _context.DocumentFiles.Add(new DocumentFile
                 {
                     Id = Guid.NewGuid(),
                     DocumentId = doc.DocumentId,
-                    FilePath = dto.FilePath,
+                    FilePath = pdfPathInDb,
                     Version = 1
                 });
-
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
@@ -531,6 +672,9 @@ int pageSize)
                 throw;
             }
         }
+
+
+
 
         public async Task UploadNewVersionAsync(string documentId, UploadNewFileDto dto, string userId)
         {
@@ -565,15 +709,7 @@ int pageSize)
             await tx.CommitAsync();
         }
 
-        private async Task UpdateSubTypeAsync(string documentId, string oldType, UpdateDocumentDto dto)
-        {
-            if (oldType != dto.DocumentType)
-            {
-                await RemoveOldSubtypeAsync(documentId, oldType);
-            }
 
-            await UpsertSubtypeAsync(documentId, dto);
-        }
 
         private async Task RemoveOldSubtypeAsync(string documentId, string oldType)
         {
@@ -606,355 +742,166 @@ int pageSize)
             }
         }
 
-        private async Task UpsertSubtypeAsync(string documentId, UpdateDocumentDto dto)
-        {
-            switch (dto.DocumentType)
-            {
-                case "InternalBook":
-                    {
-                        var entity = await _context.InternalBooks.FirstOrDefaultAsync(x => x.DocumentID == documentId);
-                        if (entity == null)
-                        {
-                            entity = new InternalBook { DocumentID = documentId };
-                            _context.InternalBooks.Add(entity);
-                        }
-                        entity.Faculty = dto.InternalBook!.Faculty;
-                        entity.DocumentType = dto.InternalBook.DocumentType;
-                        entity.Version = dto.InternalBook.Version;
-                        break;
-                    }
-
-                case "ExternalBook":
-                    {
-                        var entity = await _context.ExternalBooks.FirstOrDefaultAsync(x => x.DocumentID == documentId);
-                        if (entity == null)
-                        {
-                            entity = new ExternalBook { DocumentID = documentId };
-                            _context.ExternalBooks.Add(entity);
-                        }
-                        entity.Publisher = dto.ExternalBook!.Publisher;
-                        entity.Version = dto.ExternalBook.Version;
-                        break;
-                    }
-
-                case "Thesis":
-                    {
-                        var entity = await _context.Theses.FirstOrDefaultAsync(x => x.DocumentID == documentId);
-                        if (entity == null)
-                        {
-                            entity = new Thesis { DocumentID = documentId };
-                            _context.Theses.Add(entity);
-                        }
-                        entity.DegreeLevel = dto.Thesis!.DegreeLevel;
-                        entity.Discipline = dto.Thesis.Discipline;
-                        entity.AdvisorName = dto.Thesis.AdvisorName;
-                        entity.Abstract = dto.Thesis.Abstract;
-                        break;
-                    }
-
-                case "Research":
-                    {
-                        var entity = await _context.Researches.FirstOrDefaultAsync(x => x.DocumentID == documentId);
-                        if (entity == null)
-                        {
-                            entity = new Research { DocumentID = documentId };
-                            _context.Researches.Add(entity);
-                        }
-                        entity.Abstract = dto.Research!.Abstract;
-                        entity.ResearchLevel = dto.Research.ResearchLevel;
-                        break;
-                    }
-
-                case "ResearchPublication":
-                    {
-                        var entity = await _context.ResearchPublications.FirstOrDefaultAsync(x => x.DocumentID == documentId);
-                        if (entity == null)
-                        {
-                            entity = new ResearchPublication { DocumentID = documentId };
-                            _context.ResearchPublications.Add(entity);
-                        }
-                        entity.VenueName = dto.ResearchPublication!.VenueName;
-                        entity.PublicationType = dto.ResearchPublication.PublicationType;
-                        break;
-                    }
-
-                default:
-                    throw new Exception("Invalid DocumentType");
-            }
-        }
 
         private async Task UpdateAuthorsAsync(Models.Document doc, List<AuthorInputDto> incoming)
         {
-            await _context.Entry(doc)
-                .Collection(d => d.Authors)
-                .LoadAsync();
+            await _context.Entry(doc).Collection(d => d.Authors).LoadAsync();
 
-            string KeyEntity(Author a) =>
-                !string.IsNullOrWhiteSpace(a.Orcid) ? $"ORCID:{a.Orcid.ToLower()}" :
-                !string.IsNullOrWhiteSpace(a.Email) ? $"EMAIL:{a.Email.ToLower()}" :
-                $"NAME:{a.Name.ToLower()}";
+            var currentAuthors = doc.Authors.ToList();
+            doc.Authors.Clear();
 
-            string KeyDto(AuthorInputDto a) =>
-                !string.IsNullOrWhiteSpace(a.Orcid) ? $"ORCID:{a.Orcid.ToLower()}" :
-                !string.IsNullOrWhiteSpace(a.Email) ? $"EMAIL:{a.Email.ToLower()}" :
-                $"NAME:{a.Name.ToLower()}";
-
-            var existing = doc.Authors.ToDictionary(KeyEntity);
-            var usedKeys = new HashSet<string>();
-
-            // 1️⃣ Update / Add
             foreach (var dto in incoming)
             {
-                var key = KeyDto(dto);
-                usedKeys.Add(key);
+                var existingAuthor = await _context.Authors.FirstOrDefaultAsync(a =>
+                    (!string.IsNullOrEmpty(dto.Orcid) && a.Orcid == dto.Orcid) ||
+                    (!string.IsNullOrEmpty(dto.Email) && a.Email == dto.Email) ||
+                    a.Name == dto.Name);
 
-                if (existing.TryGetValue(key, out var author))
+                if (existingAuthor != null)
                 {
-                    author.Name = dto.Name;
-                    author.Orcid = dto.Orcid;
-                    author.Email = dto.Email;
-                    author.Description = dto.Description;
-                    author.Image = dto.Image;
-                    author.Expertise = dto.Expertise;
+                    existingAuthor.Name = dto.Name;
+                    existingAuthor.Expertise = dto.Expertise;
+                    existingAuthor.Description = dto.Description;
+
+                    if (dto.ImageFile != null)
+                    {
+                        existingAuthor.Image = await SaveFileLocal(dto.ImageFile, "authors");
+                    }
+
+                    doc.Authors.Add(existingAuthor);
                 }
                 else
                 {
-                    var dbAuthor = await _context.Authors.FirstOrDefaultAsync(a =>
-                        (!string.IsNullOrEmpty(dto.Orcid) && a.Orcid == dto.Orcid) ||
-                        (!string.IsNullOrEmpty(dto.Email) && a.Email == dto.Email) ||
-                        a.Name.ToLower() == dto.Name.Trim().ToLower()
-                    );
-
-                    if (dbAuthor == null)
-                    {
-                        dbAuthor = new Author
-                        {
-                            ID = Guid.NewGuid().ToString("N")[..16],
-                            Name = dto.Name,
-                            Orcid = dto.Orcid,
-                            Email = dto.Email,
-                            Description = dto.Description,
-                            Image = dto.Image,
-                            Expertise = dto.Expertise
-                        };
-                        _context.Authors.Add(dbAuthor);
-                    }
-
-                    doc.Authors.Add(dbAuthor);
-                }
-            }
-
-            // 2️⃣ Remove + delete orphan
-            var toRemove = existing
-                .Where(e => !usedKeys.Contains(e.Key))
-                .Select(e => e.Value)
-                .ToList();
-
-            foreach (var author in toRemove)
-            {
-                doc.Authors.Remove(author);
-
-                await _context.Entry(author)
-                    .Collection(a => a.Documents)
-                    .LoadAsync();
-
-                if (!author.Documents.Any())
-                {
-                    _context.Authors.Remove(author);
-                }
-            }
-        }
-
-        private async Task UpdateKeywordsAsync(Models.Document doc, List<string> incoming)
-        {
-            await _context.Entry(doc)
-                .Collection(d => d.Keywords)
-                .LoadAsync();
-
-            string Normalize(string s) => s.Trim().ToLower();
-
-            var existing = doc.Keywords
-                .ToDictionary(k => Normalize(k.Name));
-
-            var used = new HashSet<string>();
-
-            // 1️⃣ Add / attach
-            foreach (var name in incoming)
-            {
-                var key = Normalize(name);
-                used.Add(key);
-
-                if (existing.ContainsKey(key))
-                    continue;
-
-                var dbKeyword = await _context.Keywords
-                    .FirstOrDefaultAsync(k => k.Name.ToLower() == key);
-
-                if (dbKeyword == null)
-                {
-                    dbKeyword = new Keyword
+                    var newAuthor = new Author
                     {
                         ID = Guid.NewGuid().ToString("N")[..16],
-                        Name = name.Trim()
+                        Name = dto.Name,
+                        Email = dto.Email,
+                        Orcid = dto.Orcid,
+                        Expertise = dto.Expertise,
+                        Description = dto.Description
                     };
-                    _context.Keywords.Add(dbKeyword);
-                }
-
-                doc.Keywords.Add(dbKeyword);
-            }
-
-            // 2️⃣ Remove + delete orphan
-            var toRemove = existing
-                .Where(k => !used.Contains(k.Key))
-                .Select(k => k.Value)
-                .ToList();
-
-            foreach (var keyword in toRemove)
-            {
-                doc.Keywords.Remove(keyword);
-
-                await _context.Entry(keyword)
-                    .Collection(k => k.Documents)
-                    .LoadAsync();
-
-                if (!keyword.Documents.Any())
-                {
-                    _context.Keywords.Remove(keyword);
-                }
-            }
-        }
-
-        private async Task UpdateIdentifiersAsync(string documentId, List<IdentifierDto> incoming)
-        {
-            var existing = await _context.Identifiers
-                .Where(i => i.DocumentID == documentId)
-                .ToListAsync();
-
-            foreach (var dto in incoming)
-            {
-                var match = existing.FirstOrDefault(x =>
-                    x.Type == dto.Type && x.Value == dto.Value);
-
-                if (match != null)
-                {
-                    existing.Remove(match);
-                }
-                else
-                {
-                    _context.Identifiers.Add(new Identifier
+                    if (dto.ImageFile != null)
                     {
-                        ID = Guid.NewGuid(),
-                        DocumentID = documentId,
-                        Type = dto.Type,
-                        Value = dto.Value
-                    });
-                }
-            }
-
-            _context.Identifiers.RemoveRange(existing);
-        }
-
-        private async Task UpdateLicensesAsync(Models.Document doc, List<LicenseInputDto> incoming)
-        {
-            await _context.Entry(doc)
-                .Collection(d => d.Document_Licenses)
-                .Query()
-                .Include(dl => dl.License)
-                .LoadAsync();
-
-            var existing = doc.Document_Licenses
-                .ToDictionary(dl => dl.LicenseID.ToString());
-
-            var usedKeys = new HashSet<string>();
-
-            // 1️⃣ Add / attach
-            foreach (var dto in incoming)
-            {
-                License license;
-
-                if (dto.Id.HasValue)
-                {
-                    license = await _context.Licenses
-                        .FirstOrDefaultAsync(l => l.ID == dto.Id.Value)
-                        ?? throw new Exception("License not found");
-
-                    usedKeys.Add(dto.Id.Value.ToString());
-                }
-                else
-                {
-                    var nameKey = dto.Name!.Trim().ToLower();
-                    usedKeys.Add($"NAME:{nameKey}");
-
-                    license = await _context.Licenses
-                        .FirstOrDefaultAsync(l => l.Name.ToLower() == nameKey);
-
-                    if (license == null)
-                    {
-                        license = new License
-                        {
-                            ID = Guid.NewGuid(),
-                            Name = dto.Name.Trim()
-                        };
-                        _context.Licenses.Add(license);
+                        newAuthor.Image = await SaveFileLocal(dto.ImageFile, "authors");
                     }
-                }
-
-                if (!existing.ContainsKey(license.ID.ToString()))
-                {
-                    doc.Document_Licenses.Add(new Document_License
-                    {
-                        DocumentID = doc.DocumentId,
-                        LicenseID = license.ID,
-                        AcceptedAt = DateTime.UtcNow
-                    });
-                }
-            }
-
-            // 2️⃣ Remove mapping
-            foreach (var dl in existing.Values)
-            {
-                if (!usedKeys.Contains(dl.LicenseID.ToString()))
-                {
-                    doc.Document_Licenses.Remove(dl);
+                    _context.Authors.Add(newAuthor);
+                    doc.Authors.Add(newAuthor);
                 }
             }
         }
 
-        public async Task UpdateAsync(Guid submissionId, UpdateDocumentDto dto)
+        public async Task UpdateAsync(Guid submissionId, UpdateDocumentDto dto, string userId) // Thêm userId vào đây
         {
-            var documentId = _context.Submissions.Where(s => s.Id == submissionId).First().DocumentId;
             using var tx = await _context.Database.BeginTransactionAsync();
 
-            var doc = await _context.Documents
-                .FirstOrDefaultAsync(d => d.DocumentId == documentId);
+            try
+            {
+                var submission = await _context.Submissions
+                    .Include(s => s.Document)
+                    .FirstOrDefaultAsync(s => s.Id == submissionId);
 
-            if (doc == null)
-                throw new Exception("Document not found");
+                if (submission == null) throw new Exception("Không tìm thấy bản nộp (Submission).");
 
-            doc.Title = dto.Title;
-            doc.Description = dto.Description;
-            doc.PublicationDate = dto.PublicationDate;
-            doc.PageNum = dto.PageNum;
-            doc.IntroEndPage = dto.IntroEndPage;
-            doc.CoverPath = dto.CoverPath;
+                var documentId = submission.DocumentId;
 
-            await UpdateSubTypeAsync(documentId, doc.DocumentType, dto);
+                var doc = await _context.Documents
+                    .Include(d => d.Authors)
+                    .Include(d => d.Keywords)
+                    .Include(d => d.Document_Licenses)
+                    .FirstOrDefaultAsync(d => d.DocumentId == documentId);
 
-            if (dto.Authors != null)
-                await UpdateAuthorsAsync(doc, dto.Authors);
+                if (doc == null) throw new Exception("Không tìm thấy tài liệu (Document).");
 
-            if (dto.Keywords != null)
-                await UpdateKeywordsAsync(doc, dto.Keywords);
+                doc.Title = dto.Title;
+                doc.Description = dto.Description;
+                doc.PublicationDate = dto.PublicationDate;
+                doc.PageNum = dto.PageNum;
+                doc.IntroEndPage = dto.IntroEndPage;
 
-            if (dto.Identifiers != null)
-                await UpdateIdentifiersAsync(documentId, dto.Identifiers);
+                submission.CollectionId = dto.CollectionId;
 
-            if (dto.Licenses != null)
-                await UpdateLicensesAsync(doc, dto.Licenses);
+                bool hasNewFile = false;
+                if (dto.File != null)
+                {
+                    ValidatePdf(dto.File);
+                    var pdfPath = await SaveFileLocal(dto.File, "documents");
+                    var lastVersion = await _context.DocumentFiles
+                        .Where(f => f.DocumentId == documentId)
+                        .MaxAsync(f => (int?)f.Version) ?? 0;
 
-            await _context.SaveChangesAsync();
-            await tx.CommitAsync();
+                    _context.DocumentFiles.Add(new DocumentFile
+                    {
+                        Id = Guid.NewGuid(),
+                        DocumentId = documentId,
+                        FilePath = pdfPath,
+                        Version = lastVersion + 1,
+                        ChangeNote = dto.RevisionComment
+                    });
+                    hasNewFile = true;
+                }
+
+                if (dto.CoverFile != null)
+                {
+                    ValidateImage(dto.CoverFile);
+                    doc.CoverPath = await SaveFileLocal(dto.CoverFile, "covers");
+                }
+
+
+                string oldType = doc.DocumentType;
+
+                if (oldType != dto.DocumentType)
+                {
+                    await RemoveOldSubtypeAsync(doc.DocumentId, oldType);
+                    CreateSubTypeLogic(doc.DocumentId, dto.DocumentType, dto.InternalBook, dto.ExternalBook, dto.Thesis, dto.Research, dto.ResearchPublication);
+                }
+                else
+                {
+                    await UpsertSubtypeLogicAsync(doc.DocumentId, dto.DocumentType, dto.InternalBook, dto.ExternalBook, dto.Thesis, dto.Research, dto.ResearchPublication);
+                }
+                doc.DocumentType = dto.DocumentType;
+
+                if (dto.Authors != null)
+                {
+                    await UpdateAuthorsAsync(doc, dto.Authors);
+                }
+
+                if (dto.Keywords != null)
+                {
+                    await AttachKeywordsAsync(doc, dto.Keywords);
+                }
+
+                var oldIds = await _context.Identifiers.Where(i => i.DocumentID == documentId).ToListAsync();
+                _context.Identifiers.RemoveRange(oldIds);
+                AttachIdentifiers(documentId, dto.Identifiers);
+
+                var oldLics = await _context.Document_Licenses.Where(l => l.DocumentID == documentId).ToListAsync();
+                _context.Document_Licenses.RemoveRange(oldLics);
+                await AttachLicensesAsync(documentId, dto.Licenses);
+
+                submission.UpdatedAt = DateTime.UtcNow;
+                if (hasNewFile)
+                {
+                    submission.Status = "Submitt";
+                }
+
+                await _historyService.AddAsync(submissionId, userId, "Update", dto.RevisionComment ?? "Chỉnh sửa thông tin tài liệu");
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                Console.WriteLine($"UPDATE ERROR: {ex.Message}");
+                if (ex.InnerException != null) Console.WriteLine($"INNER: {ex.InnerException.Message}");
+                throw;
+            }
         }
+
+
+        private async Task<string> SaveFileLocal(IFormFile file, string subFolder) { var fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(file.FileName); var folderPath = Path.Combine("wwwroot/uploads", subFolder); if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath); var fullPath = Path.Combine(folderPath, fileName); using (var stream = new FileStream(fullPath, FileMode.Create)) { await file.CopyToAsync(stream); } return $"uploads/{subFolder}/{fileName}"; }
+
 
         public async Task<List<DocumentList2Dto>> GetByViewsAsync()
         {
