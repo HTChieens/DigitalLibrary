@@ -1,12 +1,14 @@
 ﻿using DigitalLibrary.Data;
 using DigitalLibrary.DTOs;
 using DigitalLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DigitalLibrary.Controllers
@@ -166,20 +168,11 @@ namespace DigitalLibrary.Controllers
 
         // POST: api/Downloads
         [HttpPost]
-        public async Task<ActionResult<object>> Download(DownloadCreateDto dto)
+        [Authorize]
+        public async Task<ActionResult<object>> Download([FromBody]DownloadCreateDto dto)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(dto.UserID))
-                {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = "Tải xuống thất bại",
-                        error = "User ID không được để trống"
-                    });
-                }
-
                 if (string.IsNullOrWhiteSpace(dto.DocumentID))
                 {
                     return BadRequest(new
@@ -190,17 +183,8 @@ namespace DigitalLibrary.Controllers
                     });
                 }
 
-                // Kiểm tra User tồn tại
-                var userExists = await _context.Users.AnyAsync(u => u.ID == dto.UserID);
-                if (!userExists)
-                {
-                    return NotFound(new
-                    {
-                        success = false,
-                        message = "Tải xuống thất bại",
-                        error = $"Người dùng với ID {dto.UserID} không tồn tại"
-                    });
-                }
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                
 
                 // Kiểm tra Document tồn tại
                 var documentExists = await _context.Documents.AnyAsync(d => d.DocumentId == dto.DocumentID);
@@ -228,7 +212,7 @@ namespace DigitalLibrary.Controllers
 
                 var download = new Download
                 {
-                    UserID = dto.UserID,
+                    UserID = userId,
                     DocumentID = dto.DocumentID,
                     DownloadedAt = DateTime.UtcNow
                 };

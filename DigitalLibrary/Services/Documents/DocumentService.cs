@@ -69,24 +69,45 @@ namespace DigitalLibrary.Services.Documents
                 .OrderByDescending(d => d.Version).ToListAsync();
         }
 
-        public async Task<List<ReviewDto>> GetReviews(string id)
+        // DocumentService.cs
+        public async Task<List<ReviewDto>> GetReviews(string id, string? currentUserId = null)
         {
-            var reviews = await _context.Reviews
+            var reviewsQuery = _context.Reviews
                 .Where(r => r.DocumentID == id)
-                .OrderByDescending(r => r.CreatedAt)
-                .Select(r => new ReviewDto
-                {
-                    Id = r.ID.ToString(),
-                    DocumentId = r.DocumentID,
-                    UserId = r.UserID,
-                    UserName = _context.Users.Where(u => u.ID == r.UserID).FirstOrDefault().Name,
-                    Rating = r.Rating,
-                    Content = r.Content,
-                    CreatedAt = r.CreatedAt
-                })
-                .ToListAsync();
+                .Include(r => r.User); // Tốt hơn là dùng Include thay vì query lồng
+
+            // Sắp xếp: Review của user hiện tại lên đầu, sau đó theo thời gian tạo
+            IQueryable<Review> orderedReviews;
+
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                orderedReviews = reviewsQuery
+                    .OrderByDescending(r => r.UserID == currentUserId)  // Review của user lên đầu
+                    .ThenByDescending(r => r.CreatedAt);                // Sau đó sắp xếp theo thời gian
+            }
+            else
+            {
+                orderedReviews = reviewsQuery
+                    .OrderByDescending(r => r.CreatedAt);
+            }
+
+            var reviews = await orderedReviews
+        .Select(r => new ReviewDto
+        {
+            Id = r.ID.ToString(),
+            DocumentId = r.DocumentID,
+            UserId = r.UserID,
+            UserName = r.User.Name ?? r.User.Email ?? "User",  // Dùng User từ Include
+            Rating = r.Rating,
+            Content = r.Content,
+            CreatedAt = r.CreatedAt,
+            UpdatedAt = r.UpdatedAt,
+            IsCurrentUser = !string.IsNullOrEmpty(currentUserId) && r.UserID == currentUserId
+        })
+        .ToListAsync();
 
             return reviews;
+
         }
 
         public async Task<object> GetAllAsync(string? authorId, string? collectionId, string? communityId, string? type, string? keyword, string sortBy, int page, int pageSize)

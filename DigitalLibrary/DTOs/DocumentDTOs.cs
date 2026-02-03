@@ -1,4 +1,6 @@
-﻿namespace DigitalLibrary.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace DigitalLibrary.DTOs
 {
     public class LicenseCreateDto
     {
@@ -116,7 +118,6 @@
 
     public class DownloadCreateDto
     {
-        public string UserID { get; set; } = null!;
         public string DocumentID { get; set; } = null!;
     }
 
@@ -124,5 +125,25 @@
     {
         public string UserID { get; set; } = null!;
         public string DocumentID { get; set; } = null!;
+    }
+    // CreateReviewDto.cs
+    public class CreateReviewDto
+    {
+        [Required]
+        [Range(1, 5, ErrorMessage = "Rating phải từ 1 đến 5")]
+        public byte Rating { get; set; }
+
+        [MaxLength(1000)]
+        public string? Content { get; set; }
+    }
+
+    // UpdateReviewDto.cs
+    public class UpdateReviewDto
+    {
+        [Range(1, 5)]
+        public byte? Rating { get; set; }
+
+        [MaxLength(1000)]
+        public string? Content { get; set; }
     }
 }

@@ -33,7 +33,8 @@ builder.Services.AddCors(options =>
             policy
                 .WithOrigins("http://localhost:4200")
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+                .AllowCredentials();
         });
 });
 builder.Services.AddSwaggerGen(option =>
@@ -68,7 +69,7 @@ builder.Services.AddSwaggerGen(option =>
 builder.Services.AddDbContext<DigitalLibraryContext>(option =>
     option.UseSqlServer(
 
-      builder.Configuration.GetConnectionString("chien")
+      builder.Configuration.GetConnectionString("huy")
 ));
 builder.Services.AddSingleton<IPasswordHasherService,PasswordHasherService>();
 builder.Services.AddScoped<IAuthenService,AuthenService>();
@@ -135,6 +136,7 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

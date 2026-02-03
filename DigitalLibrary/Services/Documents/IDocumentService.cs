@@ -24,7 +24,7 @@ namespace DigitalLibrary.Services.Documents
         Task<List<DocumentFile>> GetFilesById(string Id);
         Task<List<DocumentList2Dto>> GetByViewsAsync();
         Task<List<DocumentPopularDto>> GetByDownloadsAsync();
-        Task<List<ReviewDto>> GetReviews(string id);
+        Task<List<ReviewDto>> GetReviews(string id , string currentUserId);
 
         Task<List<CommunityTreeDto>> GetCommunities();
         Task<List<Collection>> GetCollections();
